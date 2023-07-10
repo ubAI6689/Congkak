@@ -25,7 +25,16 @@ class CongkakGame:
         self.cursor_pos = (0, 0)  # The current cursor position
         self.target_pos = None  # The target cursor position
 
+        self.passed_store = False  # Tracks whether the current move has passed the player's store
+        print(f"Passed store is now {self.passed_store}")
+
+
         self.restart_button_rect = pygame.Rect(10, 10, 100, 50)
+
+    def is_current_players_house(self, house):
+        if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 7):
+            return True
+        return False
         
     def handle_event(self, event):
         # Handle a single Pygame event
@@ -53,9 +62,16 @@ class CongkakGame:
                 # Move a seed from the source house to the target house
                 self.seeds_to_move -= 1
                 self.board.houses[self.target_house] += 1
+                if self.target_house == self.current_player.store:
+                    self.passed_store = True
+                    print(f"Passed store is now {self.passed_store}")
+
                 # If all seeds have been moved, end the animation
                 if self.seeds_to_move == 0:
                     if self.is_store(self.target_house):
+                        self.passed_store = False  # Reset passed_store to False at the end of a move
+                        print(f"Passed store is now {self.passed_store}")
+
                         self.animating = False
                     # If the target house is non-empty and not a store, continue the movement
                     elif self.board.houses[self.target_house] > 1:
@@ -70,7 +86,27 @@ class CongkakGame:
                         self.target_pos = self.get_pos_of_house(self.target_house)
                     else:
                         self.animating = False
+
+                        # Capturing logic
+                        if self.passed_store and self.is_current_players_house(self.target_house) and self.board.houses[self.target_house] == 1:
+                            print(f"Trying to capture from house {self.target_house}")
+                            print(f"Seeds in target house: {self.board.houses[self.target_house]}")
+                            print(f"Seeds in opposite house: {self.board.houses[12 - self.target_house]}")
+
+                            # Capture all the seeds in the opposite house
+                            opposite_house = 12 - self.target_house
+                            captured_seeds = self.board.houses[opposite_house]
+                            self.board.houses[opposite_house] = 0
+                            self.board.houses[self.target_house] = 0
+                            # Add the captured seeds to the player's store
+                            self.board.houses[self.current_player.store] += captured_seeds + 1
+                            print(f"Captured {captured_seeds} seeds from house {opposite_house}")
+                            print(f"Total of {captured_seeds+1} seeds added to store Player {self.current_player.number}")
+
                         # Switch the current player after a move has been finished
+                        self.passed_store = False  # Reset passed_store to False at the end of a move
+                        print(f"Passed store is now {self.passed_store}")
+
                         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
                 # Otherwise, move to the next house
                 else:
@@ -81,8 +117,9 @@ class CongkakGame:
                         next_house = (next_house + 1) % 14
                     # Update the target house and position
                     self.target_house = next_house
+                    if self.target_house == self.current_player.store:
+                        self.passed_store = True
                     self.target_pos = self.get_pos_of_house(self.target_house)
-
 
     def is_store(self, house):
         if (self.current_player.number == 1 and house == 13) or (self.current_player.number == 2 and house == 6):
