@@ -70,9 +70,14 @@ class CongkakGame:
                 if self.seeds_to_move == 0:
                     if self.is_store(self.target_house):
                         self.passed_store = False  # Reset passed_store to False at the end of a move
-                        print(f"Passed store is now {self.passed_store}")
-
                         self.animating = False
+                        print(f"Passed store is now {self.passed_store}")
+                        # If the current player's houses are all empty, switch the player
+                        if self.current_player.number == 1 and all(seeds == 0 for seeds in self.board.houses[7:13]):
+                            self.current_player = self.players[1]
+                        elif self.current_player.number == 2 and all(seeds == 0 for seeds in self.board.houses[:6]):
+                            self.current_player = self.players[0]
+
                     # If the target house is non-empty and not a store, continue the movement
                     elif self.board.houses[self.target_house] > 1:
                         seeds_to_drop = self.board.houses[self.target_house]
@@ -96,6 +101,14 @@ class CongkakGame:
                             # Capture all the seeds in the opposite house
                             opposite_house = 12 - self.target_house
                             captured_seeds = self.board.houses[opposite_house]
+                            
+                            # if opposite_house is empty, end the move
+                            if captured_seeds == 0:
+                                self.passed_store = False
+                                self.animating = False
+                                self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
+                                print(f"Passed store is now {self.passed_store}")
+
                             self.board.houses[opposite_house] = 0
                             self.board.houses[self.target_house] = 0
                             # Add the captured seeds to the player's store
@@ -120,6 +133,38 @@ class CongkakGame:
                     if self.target_house == self.current_player.store:
                         self.passed_store = True
                     self.target_pos = self.get_pos_of_house(self.target_house)
+        
+        else:
+            # When the animation ends, move the cursor to the start of the current player's houses
+            if self.current_player.number == 1:
+                x, y = self.cursor_pos = self.get_pos_of_house(7)  # The first house of player 1
+            else:
+                x, y = self.cursor_pos = self.get_pos_of_house(0)  # The first house of player 2
+            self.cursor_pos = (x, y + 50)  # Move the cursor down by 50 pixels
+
+        # After updating the game state, check if the game is over
+        if self.check_game_end():
+            winner = self.check_winner()
+            if winner is None:
+                print("The game is a draw.")
+            else:
+                print(f"Player {winner.number} wins.")
+
+    def check_game_end(self):
+        # Check if all houses are empty
+        if all(seeds == 0 for seeds in self.board.houses[:6] + self.board.houses[7:13]):
+            # If so, the game is over
+            return True
+        return False
+
+    def check_winner(self):
+        # Compare the number of seeds in each player's store
+        if self.board.houses[6] < self.board.houses[13]:
+            return self.players[0]  # Player 1 wins
+        elif self.board.houses[6] > self.board.houses[13]:
+            return self.players[1]  # Player 2 wins
+        else:
+            return None  # It's a draw
 
     def is_store(self, house):
         if (self.current_player.number == 1 and house == 13) or (self.current_player.number == 2 and house == 6):
