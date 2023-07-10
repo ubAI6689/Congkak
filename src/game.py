@@ -28,7 +28,13 @@ class CongkakGame:
         self.passed_store = False  # Tracks whether the current move has passed the player's store
         print(f"Passed store is now {self.passed_store}")
 
+        # pause
+        self.pause = False
 
+        # Create a pause button
+        self.pause_button_rect = pygame.Rect(10, 70, 100, 50)
+
+        # Create a restart button
         self.restart_button_rect = pygame.Rect(10, 10, 100, 50)
 
     def is_current_players_house(self, house):
@@ -37,27 +43,38 @@ class CongkakGame:
         return False
         
     def handle_event(self, event):
+
         # Handle a single Pygame event
-        if event.type == pygame.MOUSEBUTTONUP and not self.animating:
+        if event.type == pygame.MOUSEBUTTONUP:
+            
             pos = pygame.mouse.get_pos()
+
+            # Check if the pause button was clicked
+            if self.pause_button_rect.collidepoint(pos):
+                self.toggle_pause()
 
             # Check if the restart button was clicked
             if self.restart_button_rect.collidepoint(pos):
                 self.restart()
-            # Check if the mouse clicked on one of the current player's houses
-            house = self.get_house_at_pos(pos)
-            if house is not None and house != 6 and house != 13:  # make sure stores cannot be clicked
-                # Check if the house is in the current player's row
-                if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 6):
-                    seeds_to_move = self.board.sow_seeds(house, self.current_player)
-                    self.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
+            
+            if not self.animating:
+                # Check if the mouse clicked on one of the current player's houses
+                house = self.get_house_at_pos(pos)
+                if house is not None and house != 6 and house != 13:  # make sure stores cannot be clicked
+                    # get seeds in the house
+                    seeds = self.board.houses[house]
+                    if seeds > 0:
+                        # Check if the house is in the current player's row
+                        if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 6):
+                            seeds_to_move = self.board.sow_seeds(house, self.current_player)
+                            self.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
 
     def update(self):
         # Update the game state
-        if self.animating:
+        if self.animating and not self.pause:
             if self.cursor_pos != self.target_pos:
                 # Move the cursor towards the target
-                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 5)  # 10 is the speed of the cursor
+                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)  # 10 is the speed of the cursor
             else:
                 # Move a seed from the source house to the target house
                 self.seeds_to_move -= 1
@@ -133,14 +150,16 @@ class CongkakGame:
                     if self.target_house == self.current_player.store:
                         self.passed_store = True
                     self.target_pos = self.get_pos_of_house(self.target_house)
-        
+
         else:
-            # When the animation ends, move the cursor to the start of the current player's houses
-            if self.current_player.number == 1:
-                x, y = self.cursor_pos = self.get_pos_of_house(7)  # The first house of player 1
-            else:
-                x, y = self.cursor_pos = self.get_pos_of_house(0)  # The first house of player 2
-            self.cursor_pos = (x, y + 50)  # Move the cursor down by 50 pixels
+            if not self.pause:
+                # When the animation ends, move the cursor to the start of the current player's houses
+                if self.current_player.number == 1:
+                    x, y = self.cursor_pos = self.get_pos_of_house(7)  # The first house of player 1
+                    self.cursor_pos = (x, y + 50)  # Move the cursor down by 50 pixels
+                else:
+                    x, y = self.cursor_pos = self.get_pos_of_house(0)  # The first house of player 2
+                    self.cursor_pos = (x, y - 50)  # Move the cursor up by 50 pixels
 
         # After updating the game state, check if the game is over
         if self.check_game_end():
@@ -175,6 +194,17 @@ class CongkakGame:
         # Draw the game state to the screen
         self.screen.fill((255, 255, 255))  # Fill the screen with white
 
+        if self.pause:
+            font = pygame.font.Font(None, 36)
+            text = font.render("Game Paused", True, (255, 0, 0))  # Red text
+            self.screen.blit(text, (600, 300))  # Adjust position as needed
+
+        # Draw the pause button
+        pygame.draw.rect(self.screen, (0, 0, 0), self.pause_button_rect)
+        font = pygame.font.Font(None, 36)
+        text = font.render("Pause", True, (255, 255, 255))
+        self.screen.blit(text, self.pause_button_rect)
+
         # Draw the restart button
         pygame.draw.rect(self.screen, (0, 0, 0), self.restart_button_rect)
         font = pygame.font.Font(None, 36)
@@ -204,12 +234,16 @@ class CongkakGame:
         cursor_text = font.render(f"{self.seeds_to_move}", True, (0, 0, 0))  # Black text
         cursor_rect = self.cursor_image.get_rect(center=self.cursor_pos)
 
-        # Draw the cursor
-        self.screen.blit(self.cursor_image, cursor_rect)
-        self.screen.blit(cursor_text, cursor_rect.center)
-
-        # Draw the cursor at its current position
-        # self.screen.blit(self.cursor_image, self.cursor_pos)
+        # Flip the cursor if it's player 2's turn
+        if self.current_player.number == 2:
+            cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
+            self.screen.blit(cursor_image_flipped, cursor_rect)
+            text_pos = (cursor_rect.center[0], cursor_rect.center[1] - 20)  # Adjust the y-coordinate
+        else:
+            self.screen.blit(self.cursor_image, cursor_rect)
+            text_pos = cursor_rect.center
+        
+        self.screen.blit(cursor_text, text_pos)
         
         pygame.display.flip()
 
@@ -272,10 +306,21 @@ class CongkakGame:
             y = 300  # Multiply y-coordinates by 2
         return x, y
     
+    def toggle_pause(self):
+        self.pause = not self.pause
+
     def restart(self):
         # Reset the game state
         self.board = Board()  # Create a new board
         self.current_player = self.players[0]  # Set the current player to player 1
+        self.animating = False  # Reset the animation state
+        self.source_house = None  # Reset the source house
+        self.target_house = None  # Reset the target house
+        self.seeds_to_move = 0  # Reset the seeds to move
+        self.cursor_pos = (0, 0)  # Reset the cursor position
+        self.target_pos = None  # Reset the target cursor position
+        self.passed_store = False  # Reset the passed store flag
+        self.pause = False  # Unpause the game if it was paused
 
 
 
