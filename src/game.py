@@ -31,56 +31,63 @@ class CongkakGame:
         # Handle a single Pygame event
         if event.type == pygame.MOUSEBUTTONUP and not self.animating:
             pos = pygame.mouse.get_pos()
-            
+
             # Check if the restart button was clicked
             if self.restart_button_rect.collidepoint(pos):
                 self.restart()
             # Check if the mouse clicked on one of the current player's houses
             house = self.get_house_at_pos(pos)
-            if house is not None and house != 14 and house != 15:  # make sure stores cannot be clicked
-                 # Check if the house is in the current player's row
-                if (self.current_player.number == 1 and 7 <= house < 14) or (self.current_player.number == 2 and 0 <= house < 7):
-                    self.board.sow_seeds(house, self.current_player)
-                self.start_move(house, self.board.houses[house])  # start moving seeds from the clicked house
+            if house is not None and house != 6 and house != 13:  # make sure stores cannot be clicked
+                # Check if the house is in the current player's row
+                if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 6):
+                    seeds_to_move = self.board.sow_seeds(house, self.current_player)
+                    self.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
 
     def update(self):
         # Update the game state
-        # For simplicity, just switch the current player after each turn
-        self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
-
         if self.animating:
             if self.cursor_pos != self.target_pos:
                 # Move the cursor towards the target
-                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 10)  # 10 is the speed of the cursor
+                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 5)  # 10 is the speed of the cursor
             else:
-                self.frames_elapsed += 1  # Increment the frames elapsed
-                if self.frames_elapsed >= 18:  # If 18 frames have elapsed
-                    self.frames_elapsed = 0  # Reset the counter
-                    # Move a seed from the source house to the target house
-                    self.board.houses[self.source_house] -= 1
-                    self.board.houses[self.target_house] += 1
-                    self.seeds_to_move -= 1
-                    # If all seeds have been moved, end the animation
-                    if self.seeds_to_move == 0:
-                        # If the last house (other than a store) is not empty, continue sowing
-                        if self.target_house < 14 and self.board.houses[self.target_house] > 0:
-                            self.seeds_to_move = self.board.houses[self.target_house]
-                            self.board.houses[self.target_house] = 0
-                        else:
-                            self.animating = False
-                    # Otherwise, move to the next house
-                    else:
-                        # Calculate the next target house
-                        next_target_house = (self.target_house + 1) % 16  # Include the stores
-
+                # Move a seed from the source house to the target house
+                self.seeds_to_move -= 1
+                self.board.houses[self.target_house] += 1
+                # If all seeds have been moved, end the animation
+                if self.seeds_to_move == 0:
+                    if self.is_store(self.target_house):
+                        self.animating = False
+                    # If the target house is non-empty and not a store, continue the movement
+                    elif self.board.houses[self.target_house] > 1:
+                        seeds_to_drop = self.board.houses[self.target_house]
+                        self.board.houses[self.target_house] = 0  # Empty the target house
+                        self.seeds_to_move = seeds_to_drop  # Update the remaining seeds to move
+                        # Move the cursor to the next house before continuing the movement
+                        self.target_house = (self.target_house + 1) % 14
                         # Skip the opponent's store
-                        if self.current_player.number == 1 and next_target_house == 15:
-                            next_target_house = 0  # Skip to the first house
-                        elif self.current_player.number == 2 and next_target_house == 7:
-                            next_target_house = 8  # Skip to the next house after the store
-
-                        self.target_house = next_target_house
+                        if (self.current_player.number == 1 and self.target_house == 6) or (self.current_player.number == 2 and self.target_house == 13):
+                            self.target_house = (self.target_house + 1) % 14
                         self.target_pos = self.get_pos_of_house(self.target_house)
+                    else:
+                        self.animating = False
+                        # Switch the current player after a move has been finished
+                        self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
+                # Otherwise, move to the next house
+                else:
+                    # Calculate the next target house index
+                    next_house = (self.target_house + 1) % 14
+                    # Skip the opponent's store and check if the movement continues
+                    while (self.current_player.number == 1 and next_house == 6) or (self.current_player.number == 2 and next_house == 13):
+                        next_house = (next_house + 1) % 14
+                    # Update the target house and position
+                    self.target_house = next_house
+                    self.target_pos = self.get_pos_of_house(self.target_house)
+
+
+    def is_store(self, house):
+        if (self.current_player.number == 1 and house == 13) or (self.current_player.number == 2 and house == 6):
+            return True
+        return False
 
     def draw(self):
         # Draw the game state to the screen
@@ -98,20 +105,29 @@ class CongkakGame:
         self.screen.blit(text, (1200, 10))  # Adjust the position as needed
 
         for i, seeds in enumerate(self.board.houses):
-            if i == 14 or i == 15:  # Stores
+            if i == 6 or i == 13:  # Stores
                 pygame.draw.circle(self.screen, (0, 0, 0), self.get_pos_of_house(i), 90)
             else:  # Small holes
                 pygame.draw.circle(self.screen, (0, 0, 0), self.get_pos_of_house(i), 45)
             # Draw the number of seeds in each house
             font = pygame.font.Font(None, 36)
-            text = font.render(str(max(seeds, 0)), True, (255, 255, 255))
+            text = font.render(str(seeds), True, (255, 255, 255))
             self.screen.blit(text, self.get_pos_of_house(i))
+            # Draw the index of each house
+            index_font = pygame.font.Font(None, 24)
+            index_text = index_font.render(str(i), True, (255, 0, 0))  # Red text
+            self.screen.blit(index_text, (self.get_pos_of_house(i)[0], self.get_pos_of_house(i)[1] - 30))  # Draw above the house
         
+        # Draw the cursor with the number of seeds to move
+        cursor_text = font.render(f"{self.seeds_to_move}", True, (0, 0, 0))  # Black text
+        cursor_rect = self.cursor_image.get_rect(center=self.cursor_pos)
+
         # Draw the cursor
-        self.screen.blit(self.cursor_image, pygame.mouse.get_pos())
+        self.screen.blit(self.cursor_image, cursor_rect)
+        self.screen.blit(cursor_text, cursor_rect.center)
 
         # Draw the cursor at its current position
-        self.screen.blit(self.cursor_image, self.cursor_pos)
+        # self.screen.blit(self.cursor_image, self.cursor_pos)
         
         pygame.display.flip()
 
@@ -123,6 +139,9 @@ class CongkakGame:
         self.seeds_to_move = seeds_to_move
         self.cursor_pos = self.get_pos_of_house(source_house)
         self.target_pos = self.get_pos_of_house((source_house + 1) % 14)
+
+        # Switch the current player after a move has been started
+        # self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 
     @staticmethod
     def move_towards(pos, target, speed):
@@ -160,14 +179,14 @@ class CongkakGame:
 
     def get_pos_of_house(self, house):
         # Return the screen position of the given house
-        if house < 7:  # Top row
-            x = 300 + house * 150  # Multiply x-coordinates by 1.5
+        if house < 6:  # Top row
+            x = 380 + house * 150  # Multiply x-coordinates by 1.5
             y = 200  # Multiply y-coordinates by 2
-        elif house < 14:  # Bottom row
-            x = 300 + (13 - house) * 150  # Multiply x-coordinates by 1.5
+        elif house < 13 and house > 6:  # Bottom row
+            x = 380 + (12 - house) * 150  # Multiply x-coordinates by 1.5
             y = 400  # Multiply y-coordinates by 2
         else:  # The stores
-            x = 120 if house == 14 else 1380  # Multiply x-coordinates by 1.5
+            x = 200 if house == 13 else 1300  # Multiply x-coordinates by 1.5
             y = 300  # Multiply y-coordinates by 2
         return x, y
     
