@@ -38,8 +38,10 @@ class CongkakGame:
             # Check if the mouse clicked on one of the current player's houses
             house = self.get_house_at_pos(pos)
             if house is not None and house != 14 and house != 15:  # make sure stores cannot be clicked
+                 # Check if the house is in the current player's row
+                if (self.current_player.number == 1 and 7 <= house < 14) or (self.current_player.number == 2 and 0 <= house < 7):
+                    self.board.sow_seeds(house, self.current_player)
                 self.start_move(house, self.board.houses[house])  # start moving seeds from the clicked house
-
 
     def update(self):
         # Update the game state
@@ -89,6 +91,11 @@ class CongkakGame:
         font = pygame.font.Font(None, 36)
         text = font.render("Restart", True, (255, 255, 255))
         self.screen.blit(text, self.restart_button_rect)
+
+        # Draw the player turn
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"Player {self.current_player.number}'s turn", True, (0, 0, 0))
+        self.screen.blit(text, (1200, 10))  # Adjust the position as needed
 
         for i, seeds in enumerate(self.board.houses):
             if i == 14 or i == 15:  # Stores
