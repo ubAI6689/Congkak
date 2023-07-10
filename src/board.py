@@ -16,5 +16,13 @@ class Board:
             seeds -= 1
 
         # Handle the last seed
-        if house != player.store and self.houses[house] > 1:
-            self.sow_seeds(house, player)
+        if house != player.store:
+            if self.houses[house] == 1:  # Last seed landed in an empty house
+                opposite_house = 12 - house
+                if self.houses[opposite_house] > 0:  # Opposite house is not empty
+                    # Capture the seeds
+                    player.seeds += self.houses[opposite_house] + 1
+                    self.houses[house] = 0
+                    self.houses[opposite_house] = 0
+            elif self.houses[house] > 1:
+                self.sow_seeds(house, player)

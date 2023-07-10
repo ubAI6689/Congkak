@@ -1,8 +1,8 @@
 class Player:
-    def __init__(self, player_number):
+    def __init__(self, number):
         # Initialize the player with the given player number
-        self.player_number = player_number
-        self.store = 13 if player_number == 1 else 6  # Store is at index 6 for player 1 and index 13 for player 2
+        self.number = number
+        self.store = 13 if number == 1 else 6  # Store is at index 6 for player 1 and index 13 for player 2
 
     def choose_house(self, board):
         # Choose a house to sow from
