@@ -153,13 +153,16 @@ class CongkakGame:
 
         else:
             if not self.pause:
-                # When the animation ends, move the cursor to the start of the current player's houses
-                if self.current_player.number == 1:
-                    x, y = self.cursor_pos = self.get_pos_of_house(7)  # The first house of player 1
-                    self.cursor_pos = (x, y + 50)  # Move the cursor down by 50 pixels
-                else:
-                    x, y = self.cursor_pos = self.get_pos_of_house(0)  # The first house of player 2
-                    self.cursor_pos = (x, y - 50)  # Move the cursor up by 50 pixels
+                # # When the animation ends, move the cursor to the start of the current player's houses
+                # if self.current_player.number == 1:
+                #     x, y = self.cursor_pos = self.get_pos_of_house(7)  # The first house of player 1
+                #     self.cursor_pos = (x, y + 50)  # Move the cursor down by 50 pixels
+                # else:
+                #     x, y = self.cursor_pos = self.get_pos_of_house(0)  # The first house of player 2
+                #     self.cursor_pos = (x, y - 50)  # Move the cursor up by 50 pixels
+
+                # Update the cursor position to follow the mouse
+                self.cursor_pos = pygame.mouse.get_pos()
 
         # After updating the game state, check if the game is over
         if self.check_game_end():
@@ -232,19 +235,20 @@ class CongkakGame:
         
         # Draw the cursor with the number of seeds to move
         cursor_text = font.render(f"{self.seeds_to_move}", True, (0, 0, 0))  # Black text
-        cursor_rect = self.cursor_image.get_rect(center=self.cursor_pos)
+        cursor_width, cursor_height = self.cursor_image.get_size()
 
         # Flip the cursor if it's player 2's turn
         if self.current_player.number == 2:
+            cursor_rect = pygame.Rect(self.cursor_pos[0] - cursor_width // 2, self.cursor_pos[1] - cursor_height, cursor_width, cursor_height)
             cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
             self.screen.blit(cursor_image_flipped, cursor_rect)
             text_pos = (cursor_rect.center[0], cursor_rect.center[1] - 20)  # Adjust the y-coordinate
         else:
+            cursor_rect = self.cursor_image.get_rect(center=(self.cursor_pos[0], self.cursor_pos[1] + self.cursor_image.get_height() // 2))
             self.screen.blit(self.cursor_image, cursor_rect)
             text_pos = cursor_rect.center
         
         self.screen.blit(cursor_text, text_pos)
-        
         pygame.display.flip()
 
     # Add a new method to start a move animation
