@@ -29,6 +29,8 @@ class CongkakGame:
         self.passed_store = False  # Tracks whether the current move has passed the player's store
         print(f"Passed store is now {self.passed_store}")
 
+        self.capturing = False  # Tracks whether a capture is in progress
+
         # pause
         self.pause = False
 
@@ -83,10 +85,11 @@ class CongkakGame:
                     self.passed_store = True
                     print(f"Passed store is now {self.passed_store}")
 
-                time.sleep(0.05)  # Pause for 5 millisecond
+                time.sleep(0.01)  # Pause for 5 millisecond
 
-                # If all seeds have been moved, end the animation
+                # If all seeds have been moved, check if the movement continues or not
                 if self.seeds_to_move == 0:
+                    # If the target house is the current player's store, the player gets another turn
                     if self.is_store(self.target_house):
                         self.passed_store = False  # Reset passed_store to False at the end of a move
                         self.animating = False
@@ -108,41 +111,60 @@ class CongkakGame:
                         if (self.current_player.number == 1 and self.target_house == 6) or (self.current_player.number == 2 and self.target_house == 13):
                             self.target_house = (self.target_house + 1) % 14
                         self.target_pos = self.get_pos_of_house(self.target_house)
+
+
+                    # If the target house is empty, check for a capture
                     else:
-                        self.animating = False
+                        # self.animating = False
+                        # if not own house, end the move
+                        if not self.is_current_players_house(self.target_house):
+                            self.end_move()
+
+                        # if own house, check the seeds in the opposite house
+                        opposite_house = 12 - self.target_house
+                        captured_seeds = self.board.houses[opposite_house]
+
+                        # if no seeds to be captured, end the move
+                        if captured_seeds == 0:
+                            self.end_move()
 
                         # Capturing logic
-                        if self.passed_store and self.is_current_players_house(self.target_house) and self.board.houses[self.target_house] == 1:
+                        if self.passed_store:
+                            self.capturing = True
+                            self.animating = True
                             print(f"Trying to capture from house {self.target_house}")
                             print(f"Seeds in target house: {self.board.houses[self.target_house]}")
                             print(f"Seeds in opposite house: {self.board.houses[12 - self.target_house]}")
 
-                            # Capture all the seeds in the opposite house
-                            opposite_house = 12 - self.target_house
-                            captured_seeds = self.board.houses[opposite_house]
-                            
-                            # if opposite_house is empty, end the move
-                            if captured_seeds == 0:
-                                self.passed_store = False
-                                self.animating = False
-                                self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
-                                print(f"Passed store is now {self.passed_store}")
-
-                            # animate the capture
-
                             # Empty the opposite house and the target house
-                            self.board.houses[opposite_house] = 0
                             self.board.houses[self.target_house] = 0
-                            # Add the captured seeds to the player's store
-                            self.board.houses[self.current_player.store] += captured_seeds + 1
-                            print(f"Captured {captured_seeds} seeds from house {opposite_house}")
-                            print(f"Total of {captured_seeds+1} seeds added to store Player {self.current_player.number}")
+                            # Set the seeds_to_move to the number of captured seeds plus one (the seed in the current house)
+                            self.seeds_to_move = captured_seeds + 1
 
-                        # Switch the current player after a move has been finished
-                        self.passed_store = False  # Reset passed_store to False at the end of a move
-                        print(f"Passed store is now {self.passed_store}")
+                            # Start the animation from the current house to the opposite house
+                            self.source_house = self.target_house
+                            self.target_house = opposite_house
+                            self.target_pos = self.get_pos_of_house(opposite_house)
 
-                        self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
+                            if self.cursor_pos != self.target_pos:
+                                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 1)  # 10 is the speed of the cursor
+                                time.sleep(1)  # Pause for 5 millisecond
+                            self.board.houses[opposite_house] = 0
+
+                            if self.animating and self.target_house == opposite_house:
+                                # Move the cursor (and seeds) from the opposite house to the store
+                                self.source_house = self.target_house
+                                self.target_house = self.current_player.store
+                                self.target_pos = self.get_pos_of_house(self.current_player.store)
+                                if self.cursor_pos != self.target_pos:
+                                    self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 1)
+                                    print(f"MOVING CURSOR TO {self.current_player.store}")
+                                # add the captured seeds to the store
+                                self.board.houses[self.current_player.store] += self.seeds_to_move
+                                print(f"Captured {self.seeds_to_move} seeds")
+                                self.seeds_to_move = 0
+                                self.end_move()
+
                 # Otherwise, move to the next house
                 else:
                     # Calculate the next target house index
@@ -176,6 +198,14 @@ class CongkakGame:
                 print("The game is a draw.")
             else:
                 print(f"Player {winner.number} wins.")
+
+    def end_move(self):
+        # End the current player's move
+        self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
+        self.animating = False  # End the animation
+        # reset the passed_store flag
+        self.passed_store = False
+        print(f"Passed store is now {self.passed_store}")
 
     def check_game_end(self):
         # Check if all houses are empty
