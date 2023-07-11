@@ -1,4 +1,5 @@
 import pygame
+import time
 from board import Board
 from player import Player
 
@@ -43,7 +44,6 @@ class CongkakGame:
         return False
         
     def handle_event(self, event):
-
         # Handle a single Pygame event
         if event.type == pygame.MOUSEBUTTONUP:
             
@@ -82,6 +82,8 @@ class CongkakGame:
                 if self.target_house == self.current_player.store:
                     self.passed_store = True
                     print(f"Passed store is now {self.passed_store}")
+
+                time.sleep(0.05)  # Pause for 5 millisecond
 
                 # If all seeds have been moved, end the animation
                 if self.seeds_to_move == 0:
@@ -126,6 +128,18 @@ class CongkakGame:
                                 self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
                                 print(f"Passed store is now {self.passed_store}")
 
+                            # animate the capture
+                            while captured_seeds > 0:
+                                # target house is the opposite house
+                                self.target_house = opposite_house
+                                # move the cursor to the target house
+                                self.target_pos = self.get_pos_of_house(self.target_house)
+                                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)
+                                # move the cursor towards the store
+                                self.target_house = self.current_player.store
+                                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)c
+
+                            # Empty the opposite house and the target house
                             self.board.houses[opposite_house] = 0
                             self.board.houses[self.target_house] = 0
                             # Add the captured seeds to the player's store
@@ -263,17 +277,6 @@ class CongkakGame:
         # Switch the current player after a move has been started
         # self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 
-    @staticmethod
-    def move_towards(pos, target, speed):
-        # Move the position pos towards the target position at the given speed
-        dx = target[0] - pos[0]
-        dy = target[1] - pos[1]
-        dist = max(abs(dx), abs(dy))
-        if dist <= speed:
-            return target
-        else:
-            return (pos[0] + dx / dist * speed, pos[1] + dy / dist * speed)
-
     def run(self):
         # The main game loop
         running = True
@@ -326,5 +329,14 @@ class CongkakGame:
         self.passed_store = False  # Reset the passed store flag
         self.pause = False  # Unpause the game if it was paused
 
-
+    @staticmethod
+    def move_towards(pos, target, speed):
+        # Move the position pos towards the target position at the given speed
+        dx = target[0] - pos[0]
+        dy = target[1] - pos[1]
+        dist = max(abs(dx), abs(dy))
+        if dist <= speed:
+            return target
+        else:
+            return (pos[0] + dx / dist * speed, pos[1] + dy / dist * speed)
 
