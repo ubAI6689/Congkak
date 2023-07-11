@@ -129,15 +129,6 @@ class CongkakGame:
                                 print(f"Passed store is now {self.passed_store}")
 
                             # animate the capture
-                            while captured_seeds > 0:
-                                # target house is the opposite house
-                                self.target_house = opposite_house
-                                # move the cursor to the target house
-                                self.target_pos = self.get_pos_of_house(self.target_house)
-                                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)
-                                # move the cursor towards the store
-                                self.target_house = self.current_player.store
-                                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)c
 
                             # Empty the opposite house and the target house
                             self.board.houses[opposite_house] = 0
