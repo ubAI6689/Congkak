@@ -30,6 +30,7 @@ class CongkakGame:
         print(f"Passed store is now {self.passed_store}")
 
         self.capturing = False  # Tracks whether a capture is in progress
+        self.capture_phase = 0  # Tracks the current phase of the capture
 
         # pause
         self.pause = False
@@ -72,6 +73,32 @@ class CongkakGame:
                             self.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
 
     def update(self):
+        # Check if a capture is in progress
+        if self.capturing:
+            # Execute the capture movement code
+            if self.cursor_pos != self.target_pos:
+                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)
+            else:
+                # First phase of capture: move from current house to opposite house
+                if self.capture_phase == 1:
+                    self.board.houses[self.target_house] = 0
+                    time.sleep(0.08)
+                    # Start the second phase: move from opposite house to store
+                    self.capture_phase = 2
+                    self.source_house = self.target_house
+                    self.target_house = self.current_player.store
+                    self.target_pos = self.get_pos_of_house(self.current_player.store)
+                # Second phase of capture: move from opposite house to store
+                elif self.capture_phase == 2:
+                    self.seeds_to_move -= 1
+                    self.board.houses[self.current_player.store] += 1
+                    if self.seeds_to_move == 0:
+                        # End the capture
+                        self.capturing = False
+                        self.capture_phase = 0
+                        self.end_move()
+            return  # Skip the rest of the update method
+
         # Update the game state
         if self.animating and not self.pause:
             if self.cursor_pos != self.target_pos:
@@ -85,7 +112,7 @@ class CongkakGame:
                     self.passed_store = True
                     print(f"Passed store is now {self.passed_store}")
 
-                time.sleep(0.01)  # Pause for 5 millisecond
+                time.sleep(0.08)  # Pause for 5 millisecond
 
                 # If all seeds have been moved, check if the movement continues or not
                 if self.seeds_to_move == 0:
@@ -112,7 +139,6 @@ class CongkakGame:
                             self.target_house = (self.target_house + 1) % 14
                         self.target_pos = self.get_pos_of_house(self.target_house)
 
-
                     # If the target house is empty, check for a capture
                     else:
                         # self.animating = False
@@ -130,8 +156,9 @@ class CongkakGame:
 
                         # Capturing logic
                         if self.passed_store:
+                            # Start the capture
                             self.capturing = True
-                            self.animating = True
+                            self.capture_phase = 1
                             print(f"Trying to capture from house {self.target_house}")
                             print(f"Seeds in target house: {self.board.houses[self.target_house]}")
                             print(f"Seeds in opposite house: {self.board.houses[12 - self.target_house]}")
@@ -145,25 +172,7 @@ class CongkakGame:
                             self.source_house = self.target_house
                             self.target_house = opposite_house
                             self.target_pos = self.get_pos_of_house(opposite_house)
-
-                            if self.cursor_pos != self.target_pos:
-                                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 1)  # 10 is the speed of the cursor
-                                time.sleep(1)  # Pause for 5 millisecond
-                            self.board.houses[opposite_house] = 0
-
-                            if self.animating and self.target_house == opposite_house:
-                                # Move the cursor (and seeds) from the opposite house to the store
-                                self.source_house = self.target_house
-                                self.target_house = self.current_player.store
-                                self.target_pos = self.get_pos_of_house(self.current_player.store)
-                                if self.cursor_pos != self.target_pos:
-                                    self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 1)
-                                    print(f"MOVING CURSOR TO {self.current_player.store}")
-                                # add the captured seeds to the store
-                                self.board.houses[self.current_player.store] += self.seeds_to_move
-                                print(f"Captured {self.seeds_to_move} seeds")
-                                self.seeds_to_move = 0
-                                self.end_move()
+                            return  # Return from the update method to allow the main game loop to continue
 
                 # Otherwise, move to the next house
                 else:
@@ -180,15 +189,6 @@ class CongkakGame:
 
         else:
             if not self.pause:
-                # # When the animation ends, move the cursor to the start of the current player's houses
-                # if self.current_player.number == 1:
-                #     x, y = self.cursor_pos = self.get_pos_of_house(7)  # The first house of player 1
-                #     self.cursor_pos = (x, y + 50)  # Move the cursor down by 50 pixels
-                # else:
-                #     x, y = self.cursor_pos = self.get_pos_of_house(0)  # The first house of player 2
-                #     self.cursor_pos = (x, y - 50)  # Move the cursor up by 50 pixels
-
-                # Update the cursor position to follow the mouse
                 self.cursor_pos = pygame.mouse.get_pos()
 
         # After updating the game state, check if the game is over
@@ -231,6 +231,12 @@ class CongkakGame:
     def draw(self):
         # Draw the game state to the screen
         self.screen.fill((255, 255, 255))  # Fill the screen with white
+
+        if self.capturing:
+            font = pygame.font.Font(None, 36)
+            capture_message = f"Player {self.current_player.number} is capturing..."
+            text_surface = font.render(capture_message, True, (255, 0, 0))
+            self.screen.blit(text_surface, (600,300))
 
         if self.pause:
             font = pygame.font.Font(None, 36)
