@@ -36,7 +36,7 @@ class CongkakGame:
         self.pause = False
 
     def is_current_players_house(self, house):
-        if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 7):
+        if (self.current_player.number == PLAYER_1 and PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE) or (self.current_player.number == PLAYER_2 and PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE):
             return True
         return False
         
@@ -120,10 +120,13 @@ class CongkakGame:
                         print(f"Passed store is now {self.passed_store}")
                         print(f"Move ends in store. Player {self.current_player.number} gets another turn.")
                         # If the current player's houses are all empty, end the move
-                        if self.current_player.number == PLAYER_1 and all(seeds == 0 for seeds in self.board.houses[7:13]):
+                        if self.board.is_row_empty(self.current_player.number):
                             self.end_move()
-                        elif self.current_player.number == PLAYER_2 and all(seeds == 0 for seeds in self.board.houses[:6]):
-                            self.end_move()
+
+                        # if self.current_player.number == PLAYER_1 and all(seeds == 0 for seeds in self.board.houses[7:13]):
+                        #     self.end_move()
+                        # elif self.current_player.number == PLAYER_2 and all(seeds == 0 for seeds in self.board.houses[:6]):
+                        #     self.end_move()
 
                     # If the target house is non-empty and not a store, continue the movement
                     elif self.board.houses[self.target_house] > 1:
@@ -180,7 +183,7 @@ class CongkakGame:
                     # Calculate the next target house index
                     next_house = (self.target_house + 1) % MAX_HOUSE_COUNT
                     # Skip the opponent's store and check if the movement continues
-                    while (self.current_player.number == 1 and next_house == 6) or (self.current_player.number == 2 and next_house == 13):
+                    while (self.current_player.number == PLAYER_1 and next_house == PLAYER_2_STORE) or (self.current_player.number == PLAYER_2 and next_house == PLAYER_1_STORE):
                         next_house = (next_house + 1) % MAX_HOUSE_COUNT
                     # Update the target house and position
                     self.target_house = next_house
@@ -203,12 +206,21 @@ class CongkakGame:
     def end_move(self):
         # End the current player's move
         self.capturing = False
-        self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
         self.animating = False  # End the animation
         # reset the passed_store flag
         self.passed_store = False
+        self.change_player()  # Change the current player
         print(f"Move end. Player {self.current_player.number}'s turn.")
         print(f"Passed store is now {self.passed_store}")
+
+        # If the current player has no seeds in their houses, end their turn immediately
+        if self.board.is_row_empty(self.current_player.number):
+            self.change_player()
+            print(f"Player {self.current_player.number} has no seeds in their houses. Player {self.current_player.number}'s turn.")
+
+    def change_player(self):
+        # Change the current player
+        self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 
     def check_game_end(self):
         # Check if all houses are empty
@@ -235,9 +247,6 @@ class CongkakGame:
         self.cursor_pos = self.get_pos_of_house(source_house)
         self.target_pos = self.get_pos_of_house((source_house + 1) % MAX_HOUSE_COUNT)
         print(f"Player {self.current_player.number} move from house no {source_house} towards house no {(source_house + seeds_to_move) % MAX_HOUSE_COUNT}.")
-
-        # Switch the current player after a move has been started
-        # self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 
     def run(self):
         # The main game loop
@@ -272,10 +281,10 @@ class CongkakGame:
 
         if house < PLAYER_2_STORE:  # Top row
             x = start_pos + total_house_width * house
-            y = 0.35 * SCREEN_HEIGHT
+            y = 0.4 * SCREEN_HEIGHT
         elif house < PLAYER_1_STORE and house > PLAYER_2_STORE:  # Bottom row
             x = start_pos + total_house_width * (PLAYER_1_STORE - 1 - house)
-            y = 0.7 * SCREEN_HEIGHT
+            y = 0.6 * SCREEN_HEIGHT
         else:  # The stores
             if house == PLAYER_1_STORE:
                 first_house_x, _ = self.get_pos_of_house(0)
@@ -291,13 +300,14 @@ class CongkakGame:
 
     def restart(self):
         # Reset the game state
+        print(f"Restarting...")
+        self.animating = False  # Reset the animation state
         self.board = Board()  # Create a new board
         self.current_player = self.players[0]  # Set the current player to player 1
-        self.animating = False  # Reset the animation state
         self.source_house = None  # Reset the source house
         self.target_house = None  # Reset the target house
         self.seeds_to_move = 0  # Reset the seeds to move
-        self.cursor_pos = (0, 0)  # Reset the cursor position
+        # self.cursor_pos = (0, 0)  # Reset the cursor position
         self.target_pos = None  # Reset the target cursor position
         self.passed_store = False  # Reset the passed store flag
         self.pause = False  # Unpause the game if it was paused

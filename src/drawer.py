@@ -39,13 +39,13 @@ class Drawer:
             font = pygame.font.Font(CAPTURE_FONT, CAPTURE_FONT_SIZE)
             capture_message = f"Player {self.game.current_player.number} is capturing..."
             text_surface = font.render(capture_message, True, (CAPTURE_MSG_COLOR))
-            self.screen.blit(text_surface, (600,300))
+            self.screen.blit(text_surface, CAPTURE_MSG_DIM)
 
     def draw_pause_message(self):
         if self.game.pause:
             font = pygame.font.Font(PAUSE_FONT, PAUSE_FONT_SIZE)
             text = font.render("Game Paused", True, PAUSE_MSG_COLOR)  # Red text
-            self.screen.blit(text, (600, 300))  # Adjust position as needed
+            self.screen.blit(text, PAUSE_MSG_DIM)  # Adjust position as needed
 
     def draw_pause_button(self):
         pygame.draw.rect(self.screen, PAUSE_BUTTON_COLOR, self.pause_button_rect)
@@ -62,7 +62,7 @@ class Drawer:
     def draw_player_turn(self):
         font = pygame.font.Font(TURN_MSG_FONT, TURN_MSG_FONT_SIZE)
         text = font.render(f"Player {self.game.current_player.number}'s turn", True, TURN_MSG_COLOR)
-        self.screen.blit(text, (1200, 10))  # Adjust the position as needed
+        self.screen.blit(text, (0.85 * SCREEN_WIDTH, 10))  # Adjust the position as needed
 
     def draw_houses(self):
         for i, seeds in enumerate(self.game.board.houses):
