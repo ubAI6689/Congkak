@@ -120,7 +120,7 @@ class CongkakGame:
                 if self.seeds_to_move == 0:
 
                     # If the target house is the current player's store, the player gets another turn
-                    if self.is_store(self.target_house):
+                    if self.target_house == self.current_player.store:
                         self.passed_store = False  # Reset passed_store to False at the end of a move
                         self.animating = False
                         print(f"Passed store is now {self.passed_store}")
@@ -231,11 +231,6 @@ class CongkakGame:
             return self.players[1]  # Player 2 wins
         else:
             return None  # It's a draw
-
-    def is_store(self, house):
-        if (self.current_player.number == 1 and house == 13) or (self.current_player.number == 2 and house == 6):
-            return True
-        return False
 
     def draw(self):
         # Draw the game state to the screen
