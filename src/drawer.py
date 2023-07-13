@@ -16,7 +16,7 @@ class Drawer:
         self.restart_button_rect = pygame.Rect(RESTART_BUTTON_DIM)
 
         # Load a cursor image
-        self.cursor_image = pygame.image.load('../assets/handcursor.png')
+        self.cursor_image = pygame.image.load(CURSOR_IMAGE)
         # Hide the default cursor
         pygame.mouse.set_visible(False)
 
@@ -54,14 +54,14 @@ class Drawer:
         self.screen.blit(text, self.pause_button_rect)
 
     def draw_restart_button(self):
-        pygame.draw.rect(self.screen, (0, 0, 0), self.restart_button_rect)
-        font = pygame.font.Font(None, 36)
-        text = font.render("Restart", True, (255, 255, 255))
+        pygame.draw.rect(self.screen, RESTART_BUTTON_COLOR, self.restart_button_rect)
+        font = pygame.font.Font(RESTART_BUTTON_FONT, RESTART_BUTTON_FONT_SIZE)
+        text = font.render("Restart", True, WHITE)
         self.screen.blit(text, self.restart_button_rect)
 
     def draw_player_turn(self):
-        font = pygame.font.Font(None, 36)
-        text = font.render(f"Player {self.game.current_player.number}'s turn", True, (0, 0, 0))
+        font = pygame.font.Font(TURN_MSG_FONT, TURN_MSG_FONT_SIZE)
+        text = font.render(f"Player {self.game.current_player.number}'s turn", True, TURN_MSG_COLOR)
         self.screen.blit(text, (1200, 10))  # Adjust the position as needed
 
     def draw_houses(self):
@@ -79,13 +79,13 @@ class Drawer:
 
             # Draw the index of each house
             index_font = pygame.font.Font(HOUSE_INDEX_FONT, HOUSE_INDEX_FONT_SIZE)
-            index_text = index_font.render(str(i), True, INDEX_COLOR)  # Red text
+            index_text = index_font.render(str(i), True, HOUSE_INDEX_COLOR)  # Red text
             self.screen.blit(index_text, (self.game.get_pos_of_house(i)[0], self.game.get_pos_of_house(i)[1] - 30))  # Draw above the house
 
 
     def draw_cursor(self):
-        font = pygame.font.Font(None, 36)
-        cursor_text = font.render(f"{self.game.seeds_to_move}", True, (0, 0, 0))  # Black text
+        font = pygame.font.Font(CURSOR_FONT, CURSOR_FONT_SIZE)
+        cursor_text = font.render(f"{self.game.seeds_to_move}", True, CURSOR_FONT_COLOR)  # Black text
         cursor_width, cursor_height = self.cursor_image.get_size()
 
         # Flip the cursor if it's player 2's turn
