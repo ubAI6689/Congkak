@@ -195,14 +195,6 @@ class CongkakGame:
             if not self.pause:
                 self.cursor_pos = pygame.mouse.get_pos()
 
-        # After updating the game state, check if the game is over
-        if self.board.check_game_end():
-            winner = self.board.check_winner()
-            if winner is None:
-                print("The game is a draw.")
-            else:
-                print(f"Player {winner.number} wins.")
-
     def end_move(self):
         # End the current player's move
         self.capturing = False
@@ -215,28 +207,22 @@ class CongkakGame:
 
         # If the current player has no seeds in their houses, end their turn immediately
         if self.board.is_row_empty(self.current_player.number):
+            print(f"Player {self.current_player.number} has no seeds in their houses. Changing turn ...")
             self.change_player()
-            print(f"Player {self.current_player.number} has no seeds in their houses. Player {self.current_player.number}'s turn.")
+            print(f"Player {self.current_player.number}'s turn.")
+            self.board.print_board()
 
+        # Every time the move end, check if the game is over
+        if self.board.check_game_end():
+            winner = self.board.check_winner()
+            if winner is None:
+                print("The game is a draw.")
+            else:
+                print(f"Player {winner} wins.")
+            
     def change_player(self):
         # Change the current player
         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
-
-    # def check_game_end(self):
-    #     # Check if all houses are empty
-    #     if all(seeds == 0 for seeds in self.board.houses[:PLAYER_2_STORE] + self.board.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MIN_HOUSE]):
-    #         # If so, the game is over
-    #         return True
-    #     return False
-
-    # def check_winner(self):
-    #     # Compare the number of seeds in each player's store
-    #     if self.board.houses[PLAYER_2_STORE] < self.board.houses[PLAYER_1_STORE]:
-    #         return self.players[0]  # Player 1 wins
-    #     elif self.board.houses[PLAYER_2_STORE] > self.board.houses[PLAYER_1_STORE]:
-    #         return self.players[1]  # Player 2 wins
-    #     else:
-    #         return None  # It's a draw
 
     # Add a new method to start a move animation
     def start_move(self, source_house, seeds_to_move):

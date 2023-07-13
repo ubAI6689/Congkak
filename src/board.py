@@ -5,11 +5,19 @@ class Board:
         # Initialize the board
         self.houses = BOARD_HOUSES.copy()
 
+    def print_board(self):
+        print("Current state of the board:")
+        print(" " + " ".join(str(seeds) for seeds in self.houses[PLAYER_2_MIN_HOUSE:PLAYER_2_STORE]))
+        print(str(self.houses[PLAYER_1_STORE]) + " " * INIT_SEEDS + " " * 2  + str(self.houses[PLAYER_2_STORE]))
+        print(" " + " ".join(str(seeds) for seeds in reversed(self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_STORE])))
+
     def is_row_empty(self, player_number):
         if player_number == PLAYER_1:
-            houses_to_check = self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MAX_HOUSE]
+            print("Checking Player 1 row")
+            houses_to_check = self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MAX_HOUSE+1]
         elif player_number == PLAYER_2:
-            houses_to_check = self.houses[PLAYER_2_MIN_HOUSE:PLAYER_2_MAX_HOUSE]
+            print("Checking Player 2 row")
+            houses_to_check = self.houses[PLAYER_2_MIN_HOUSE:PLAYER_2_MAX_HOUSE+1]
         else:
             return False  # Invalid player number
 
@@ -23,7 +31,8 @@ class Board:
 
     def check_game_end(self):
         # Check if all houses are empty
-        return all(seeds == 0 for seeds in self.houses[:PLAYER_2_STORE] + self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MIN_HOUSE])
+        return all(seeds == 0 for seeds in self.houses[PLAYER_2_MIN_HOUSE:PLAYER_2_MAX_HOUSE+1] + self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MAX_HOUSE+1])
+
 
     def check_winner(self):
         # Compare the number of seeds in each player's store

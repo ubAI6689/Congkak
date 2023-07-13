@@ -28,6 +28,7 @@ class Drawer:
         self.draw_pause_button()
         self.draw_restart_button()
         self.draw_player_turn()
+        self.draw_winning_message()
 
         self.draw_houses()
         self.draw_cursor()
@@ -40,6 +41,20 @@ class Drawer:
             capture_message = f"Player {self.game.current_player.number} is capturing..."
             text_surface = font.render(capture_message, True, (CAPTURE_MSG_COLOR))
             self.screen.blit(text_surface, CAPTURE_MSG_DIM)
+
+    def draw_winning_message(self):
+        if self.game.board.check_game_end():
+            winner = self.game.board.check_winner()
+            if winner is not None:
+                font = pygame.font.Font(CAPTURE_FONT, CAPTURE_FONT_SIZE)
+                capture_message = f"Player {winner} win."
+                text_surface = font.render(capture_message, True, RED)
+                self.screen.blit(text_surface, CAPTURE_MSG_DIM)
+            else:
+                font = pygame.font.Font(CAPTURE_FONT, CAPTURE_FONT_SIZE)
+                capture_message = f"It's a draw."
+                text_surface = font.render(capture_message, True, RED)
+                self.screen.blit(text_surface, CAPTURE_MSG_DIM)
 
     def draw_pause_message(self):
         if self.game.pause:
