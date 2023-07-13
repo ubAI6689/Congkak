@@ -1,15 +1,18 @@
+# game.py
+
 import pygame
 import time
 from board import Board
 from player import Player
 from drawer import Drawer
+from config import *
 
 class CongkakGame:
     def __init__(self, screen):
         self.screen = screen  # Pygame screen for drawing
         self.board = Board()  # The game board
         self.drawer = Drawer(screen, self) # The game drawer
-        self.players = [Player(1), Player(2)]  # The two players
+        self.players = [Player(i) for i in PLAYER_NUMBERS]  # The two players
         self.current_player = self.players[0]  # The current player
 
         self.clock = pygame.time.Clock()  # Pygame clock for limiting the framerate
@@ -68,12 +71,12 @@ class CongkakGame:
         if self.capturing:
             # Execute the capture movement code
             if self.cursor_pos != self.target_pos:
-                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 6.5)
+                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, ANIMATION_SPEED)
             else:
                 # First phase of capture: move from current house to opposite house
                 if self.capture_phase == 1:
                     self.board.houses[self.target_house] = 0
-                    time.sleep(0.08)
+                    time.sleep(SLEEP_TIME)
                     # Start the second phase: move from opposite house to store
                     self.capture_phase = 2
                     self.source_house = self.target_house
@@ -95,7 +98,7 @@ class CongkakGame:
         if self.animating and not self.pause:
             if self.cursor_pos != self.target_pos:
                 # Move the cursor towards the target
-                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, 8)  # 10 is the speed of the cursor
+                self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, ANIMATION_SPEED)  # 10 is the speed of the cursor
             else:
                 # Move a seed from the source house to the target house
                 self.seeds_to_move -= 1
@@ -105,7 +108,7 @@ class CongkakGame:
                     self.passed_store = True
                     print(f"Passed store is now {self.passed_store}")
 
-                time.sleep(0.08)  # Pause for 5 millisecond
+                time.sleep(SLEEP_TIME)  # Pause for 5 millisecond
 
                 # If all seeds have been moved, check if the movement continues or not
                 if self.seeds_to_move == 0:
@@ -117,9 +120,9 @@ class CongkakGame:
                         print(f"Passed store is now {self.passed_store}")
                         print(f"Move ends in store. Player {self.current_player.number} gets another turn.")
                         # If the current player's houses are all empty, end the move
-                        if self.current_player.number == 1 and all(seeds == 0 for seeds in self.board.houses[7:13]):
+                        if self.current_player.number == PLAYER_1 and all(seeds == 0 for seeds in self.board.houses[7:13]):
                             self.end_move()
-                        elif self.current_player.number == 2 and all(seeds == 0 for seeds in self.board.houses[:6]):
+                        elif self.current_player.number == PLAYER_2 and all(seeds == 0 for seeds in self.board.houses[:6]):
                             self.end_move()
 
                     # If the target house is non-empty and not a store, continue the movement
@@ -240,7 +243,7 @@ class CongkakGame:
         # The main game loop
         running = True
         while running:
-            self.clock.tick(60)  # Limit the framerate to 60 FPS
+            self.clock.tick(FPS_LIMIT)  # Limit the framerate to 60 FPS
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -253,7 +256,7 @@ class CongkakGame:
     def get_house_at_pos(self, pos):
         # Return the index of the house at the given mouse position, or None if there isn't one
         x, y = pos
-        for i in range(16):
+        for i in range(14):
             house_x, house_y = self.get_pos_of_house(i)
             if abs(x - house_x) <= 45 and abs(y - house_y) <= 45:  # Within 45 pixels of the center of the house
                 return i
