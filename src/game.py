@@ -196,8 +196,8 @@ class CongkakGame:
                 self.cursor_pos = pygame.mouse.get_pos()
 
         # After updating the game state, check if the game is over
-        if self.check_game_end():
-            winner = self.check_winner()
+        if self.board.check_game_end():
+            winner = self.board.check_winner()
             if winner is None:
                 print("The game is a draw.")
             else:
@@ -222,21 +222,21 @@ class CongkakGame:
         # Change the current player
         self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
 
-    def check_game_end(self):
-        # Check if all houses are empty
-        if all(seeds == 0 for seeds in self.board.houses[:PLAYER_2_STORE] + self.board.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MIN_HOUSE]):
-            # If so, the game is over
-            return True
-        return False
+    # def check_game_end(self):
+    #     # Check if all houses are empty
+    #     if all(seeds == 0 for seeds in self.board.houses[:PLAYER_2_STORE] + self.board.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MIN_HOUSE]):
+    #         # If so, the game is over
+    #         return True
+    #     return False
 
-    def check_winner(self):
-        # Compare the number of seeds in each player's store
-        if self.board.houses[PLAYER_2_STORE] < self.board.houses[PLAYER_1_STORE]:
-            return self.players[0]  # Player 1 wins
-        elif self.board.houses[PLAYER_2_STORE] > self.board.houses[PLAYER_1_STORE]:
-            return self.players[1]  # Player 2 wins
-        else:
-            return None  # It's a draw
+    # def check_winner(self):
+    #     # Compare the number of seeds in each player's store
+    #     if self.board.houses[PLAYER_2_STORE] < self.board.houses[PLAYER_1_STORE]:
+    #         return self.players[0]  # Player 1 wins
+    #     elif self.board.houses[PLAYER_2_STORE] > self.board.houses[PLAYER_1_STORE]:
+    #         return self.players[1]  # Player 2 wins
+    #     else:
+    #         return None  # It's a draw
 
     # Add a new method to start a move animation
     def start_move(self, source_house, seeds_to_move):

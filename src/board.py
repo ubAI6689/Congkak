@@ -15,6 +15,25 @@ class Board:
 
         return all(seeds == 0 for seeds in houses_to_check)
 
+    def is_players_house(self, player_number, house):
+        if player_number == PLAYER_1:
+            return PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE
+        else:  # player_number == PLAYER_2
+            return PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE
+
+    def check_game_end(self):
+        # Check if all houses are empty
+        return all(seeds == 0 for seeds in self.houses[:PLAYER_2_STORE] + self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MIN_HOUSE])
+
+    def check_winner(self):
+        # Compare the number of seeds in each player's store
+        if self.houses[PLAYER_2_STORE] < self.houses[PLAYER_1_STORE]:
+            return PLAYER_1  # Player 1 wins
+        elif self.houses[PLAYER_2_STORE] > self.houses[PLAYER_1_STORE]:
+            return PLAYER_2  # Player 2 wins
+        else:
+            return None  # It's a draw
+
     def sow_seeds(self, house, player):
         # Get the number of seeds in the house
         seeds = self.houses[house]
@@ -33,3 +52,5 @@ class Board:
                     self.houses[opposite_house] = 0
             elif self.houses[house] > 1:
                 self.sow_seeds(house, player)
+
+    
