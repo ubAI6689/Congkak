@@ -57,12 +57,12 @@ class CongkakGame:
             if not self.animating:
                 # Check if the mouse clicked on one of the current player's houses
                 house = self.get_house_at_pos(pos)
-                if house is not None and house != 6 and house != 13:  # make sure stores cannot be clicked
+                if house is not None and house != PLAYER_1_STORE and house != PLAYER_2_STORE:  # make sure stores cannot be clicked
                     # get seeds in the house
                     seeds = self.board.houses[house]
                     if seeds > 0:
                         # Check if the house is in the current player's row
-                        if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 6):
+                        if (self.current_player.number == PLAYER_1 and PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE) or (self.current_player.number == PLAYER_2 and PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE):
                             seeds_to_move = self.board.sow_seeds(house, self.current_player)
                             self.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
 
@@ -74,7 +74,7 @@ class CongkakGame:
                 self.cursor_pos = self.move_towards(self.cursor_pos, self.target_pos, ANIMATION_SPEED)
             else:
                 # First phase of capture: move from current house to opposite house
-                if self.capture_phase == 1:
+                if self.capture_phase == CAPTURE_PHASES[0]:
                     self.board.houses[self.target_house] = 0
                     time.sleep(SLEEP_TIME)
                     # Start the second phase: move from opposite house to store
@@ -84,7 +84,7 @@ class CongkakGame:
                     self.target_pos = self.get_pos_of_house(self.current_player.store)
                 # Second phase of capture: move from opposite house to store
                     print(f"Total captured seeds: {self.seeds_to_move}")
-                elif self.capture_phase == 2:
+                elif self.capture_phase == CAPTURE_PHASES[1]:
                     self.seeds_to_move -= 1
                     self.board.houses[self.current_player.store] += 1   
                     if self.seeds_to_move == 0:
@@ -128,14 +128,14 @@ class CongkakGame:
                     # If the target house is non-empty and not a store, continue the movement
                     elif self.board.houses[self.target_house] > 1:
                         seeds_to_drop = self.board.houses[self.target_house]
-                        print(f"Move continues to house {(self.target_house + 1 + seeds_to_drop) % 14}.")
+                        print(f"Move continues to house {(self.target_house + 1 + seeds_to_drop) % MAX_HOUSE_COUNT}.")
                         self.board.houses[self.target_house] = 0  # Empty the target house
                         self.seeds_to_move = seeds_to_drop  # Update the remaining seeds to move
                         # Move the cursor to the next house before continuing the movement
-                        self.target_house = (self.target_house + 1) % 14
+                        self.target_house = (self.target_house + 1) % MAX_HOUSE_COUNT
                         # Skip the opponent's store
                         if (self.current_player.number == 1 and self.target_house == 6) or (self.current_player.number == 2 and self.target_house == 13):
-                            self.target_house = (self.target_house + 1) % 14
+                            self.target_house = (self.target_house + 1) % MAX_HOUSE_COUNT
                         self.target_pos = self.get_pos_of_house(self.target_house)
 
                     # If the target house is empty, check for a capture
@@ -151,7 +151,7 @@ class CongkakGame:
                             return
 
                         # if own house and has passed store, check the seeds in the opposite house
-                        opposite_house = 12 - self.target_house
+                        opposite_house = TOTAL_HOUSE - self.target_house
                         captured_seeds = self.board.houses[opposite_house]
 
                         # if no seeds to be captured, end the move
@@ -164,7 +164,7 @@ class CongkakGame:
                         self.capture_phase = 1
                         print(f"Trying to capture from house {self.target_house}")
                         print(f"Seeds in target house: {self.board.houses[self.target_house]}")
-                        print(f"Seeds in opposite house: {self.board.houses[12 - self.target_house]}")
+                        print(f"Seeds in opposite house: {self.board.houses[TOTAL_HOUSE - self.target_house]}")
                         # Empty the opposite house and the target house
                         self.board.houses[self.target_house] = 0
                         # Set the seeds_to_move to the number of captured seeds plus one (the seed in the current house)
@@ -178,10 +178,10 @@ class CongkakGame:
                 # Otherwise (if seeds to move is not yet 0), move to the next house
                 else:
                     # Calculate the next target house index
-                    next_house = (self.target_house + 1) % 14
+                    next_house = (self.target_house + 1) % MAX_HOUSE_COUNT
                     # Skip the opponent's store and check if the movement continues
                     while (self.current_player.number == 1 and next_house == 6) or (self.current_player.number == 2 and next_house == 13):
-                        next_house = (next_house + 1) % 14
+                        next_house = (next_house + 1) % MAX_HOUSE_COUNT
                     # Update the target house and position
                     self.target_house = next_house
                     if self.target_house == self.current_player.store:
@@ -212,16 +212,16 @@ class CongkakGame:
 
     def check_game_end(self):
         # Check if all houses are empty
-        if all(seeds == 0 for seeds in self.board.houses[:6] + self.board.houses[7:13]):
+        if all(seeds == 0 for seeds in self.board.houses[:PLAYER_2_STORE] + self.board.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MIN_HOUSE]):
             # If so, the game is over
             return True
         return False
 
     def check_winner(self):
         # Compare the number of seeds in each player's store
-        if self.board.houses[6] < self.board.houses[13]:
+        if self.board.houses[PLAYER_2_STORE] < self.board.houses[PLAYER_1_STORE]:
             return self.players[0]  # Player 1 wins
-        elif self.board.houses[6] > self.board.houses[13]:
+        elif self.board.houses[PLAYER_2_STORE] > self.board.houses[PLAYER_1_STORE]:
             return self.players[1]  # Player 2 wins
         else:
             return None  # It's a draw
@@ -230,11 +230,11 @@ class CongkakGame:
     def start_move(self, source_house, seeds_to_move):
         self.animating = True
         self.source_house = source_house
-        self.target_house = (source_house + 1) % 14
+        self.target_house = (source_house + 1) % MAX_HOUSE_COUNT
         self.seeds_to_move = seeds_to_move
         self.cursor_pos = self.get_pos_of_house(source_house)
-        self.target_pos = self.get_pos_of_house((source_house + 1) % 14)
-        print(f"Player {self.current_player.number} move from house no {source_house} towards house no {(source_house + seeds_to_move) % 14}.")
+        self.target_pos = self.get_pos_of_house((source_house + 1) % MAX_HOUSE_COUNT)
+        print(f"Player {self.current_player.number} move from house no {source_house} towards house no {(source_house + seeds_to_move) % MAX_HOUSE_COUNT}.")
 
         # Switch the current player after a move has been started
         # self.current_player = self.players[0] if self.current_player == self.players[1] else self.players[1]
@@ -256,7 +256,7 @@ class CongkakGame:
     def get_house_at_pos(self, pos):
         # Return the index of the house at the given mouse position, or None if there isn't one
         x, y = pos
-        for i in range(14):
+        for i in range(MAX_HOUSE_COUNT):
             house_x, house_y = self.get_pos_of_house(i)
             if abs(x - house_x) <= 45 and abs(y - house_y) <= 45:  # Within 45 pixels of the center of the house
                 return i
@@ -264,14 +264,14 @@ class CongkakGame:
 
     def get_pos_of_house(self, house):
         # Return the screen position of the given house
-        if house < 6:  # Top row
+        if house < PLAYER_2_STORE:  # Top row
             x = 380 + house * 150  # Multiply x-coordinates by 1.5
             y = 200  # Multiply y-coordinates by 2
-        elif house < 13 and house > 6:  # Bottom row
+        elif house < PLAYER_1_STORE and house > PLAYER_2_STORE:  # Bottom row
             x = 380 + (12 - house) * 150  # Multiply x-coordinates by 1.5
             y = 400  # Multiply y-coordinates by 2
         else:  # The stores
-            x = 200 if house == 13 else 1300  # Multiply x-coordinates by 1.5
+            x = 200 if house == PLAYER_1_STORE else 1300  # Multiply x-coordinates by 1.5
             y = 300  # Multiply y-coordinates by 2
         return x, y
     

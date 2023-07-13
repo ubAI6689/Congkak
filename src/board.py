@@ -1,7 +1,9 @@
+from config import *
+
 class Board:
     def __init__(self):
         # Initialize the board with 7 seeds in each house and 0 in each store
-        self.houses = [6] * 6 + [0] + [6] * 6 + [0]  # 7 seeds in each house, 0 in each store
+        self.houses = BOARD_HOUSES
 
     def sow_seeds(self, house, player):
         # Get the number of seeds in the house
