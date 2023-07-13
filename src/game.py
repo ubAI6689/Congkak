@@ -134,7 +134,7 @@ class CongkakGame:
                         # Move the cursor to the next house before continuing the movement
                         self.target_house = (self.target_house + 1) % MAX_HOUSE_COUNT
                         # Skip the opponent's store
-                        if (self.current_player.number == 1 and self.target_house == 6) or (self.current_player.number == 2 and self.target_house == 13):
+                        if (self.current_player.number == PLAYER_1 and self.target_house == PLAYER_2_STORE) or (self.current_player.number == PLAYER_2 and self.target_house == PLAYER_1_STORE):
                             self.target_house = (self.target_house + 1) % MAX_HOUSE_COUNT
                         self.target_pos = self.get_pos_of_house(self.target_house)
 
@@ -264,15 +264,26 @@ class CongkakGame:
 
     def get_pos_of_house(self, house):
         # Return the screen position of the given house
+        gap_ratio = 0.3 
+        gap = SCREEN_WIDTH * gap_ratio // (INIT_HOUSE_ROW - 1)
+        total_house_width = HOUSE_SIZE + gap
+        total_row_width = total_house_width * INIT_HOUSE_ROW - 1.5 * gap
+        start_pos = 0.5 * SCREEN_WIDTH - total_row_width / 2
+
         if house < PLAYER_2_STORE:  # Top row
-            x = 380 + house * 150  # Multiply x-coordinates by 1.5
-            y = 200  # Multiply y-coordinates by 2
+            x = start_pos + total_house_width * house
+            y = 0.35 * SCREEN_HEIGHT
         elif house < PLAYER_1_STORE and house > PLAYER_2_STORE:  # Bottom row
-            x = 380 + (12 - house) * 150  # Multiply x-coordinates by 1.5
-            y = 400  # Multiply y-coordinates by 2
+            x = start_pos + total_house_width * (PLAYER_1_STORE - 1 - house)
+            y = 0.7 * SCREEN_HEIGHT
         else:  # The stores
-            x = 200 if house == PLAYER_1_STORE else 1300  # Multiply x-coordinates by 1.5
-            y = 300  # Multiply y-coordinates by 2
+            if house == PLAYER_1_STORE:
+                first_house_x, _ = self.get_pos_of_house(0)
+                x = first_house_x - STORE_SIZE - gap  # Position the store to the left of the first house
+            else:
+                last_house_x, _ = self.get_pos_of_house(PLAYER_2_STORE - 1)
+                x = last_house_x + STORE_SIZE + gap  # Position the store to the right of the last house
+            y = 0.5 * SCREEN_HEIGHT
         return x, y
     
     def toggle_pause(self):
