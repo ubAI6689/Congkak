@@ -2,21 +2,18 @@ import pygame
 import time
 from board import Board
 from player import Player
+from drawer import Drawer
 
 class CongkakGame:
     def __init__(self, screen):
         self.screen = screen  # Pygame screen for drawing
         self.board = Board()  # The game board
+        self.drawer = Drawer(screen, self) # The game drawer
         self.players = [Player(1), Player(2)]  # The two players
         self.current_player = self.players[0]  # The current player
 
         self.clock = pygame.time.Clock()  # Pygame clock for limiting the framerate
         self.frames_elapsed = 0  # Count the number of frames elapsed
-
-        # Load a cursor image
-        self.cursor_image = pygame.image.load('../assets/handcursor.png')
-        # Hide the default cursor
-        pygame.mouse.set_visible(False)
 
         self.animating = False  # Whether an animation is in progress
         self.source_house = None  # The house seeds are being moved from
@@ -35,12 +32,6 @@ class CongkakGame:
         # pause
         self.pause = False
 
-        # Create a pause button
-        self.pause_button_rect = pygame.Rect(10, 70, 100, 50)
-
-        # Create a restart button
-        self.restart_button_rect = pygame.Rect(10, 10, 100, 50)
-
     def is_current_players_house(self, house):
         if (self.current_player.number == 1 and 7 <= house < 13) or (self.current_player.number == 2 and 0 <= house < 7):
             return True
@@ -53,11 +44,11 @@ class CongkakGame:
             pos = pygame.mouse.get_pos()
 
             # Check if the pause button was clicked
-            if self.pause_button_rect.collidepoint(pos):
+            if self.drawer.pause_button_rect.collidepoint(pos):
                 self.toggle_pause()
 
             # Check if the restart button was clicked
-            if self.restart_button_rect.collidepoint(pos):
+            if self.drawer.restart_button_rect.collidepoint(pos):
                 self.restart()
             
             if not self.animating:
@@ -232,70 +223,6 @@ class CongkakGame:
         else:
             return None  # It's a draw
 
-    def draw(self):
-        # Draw the game state to the screen
-        self.screen.fill((255, 255, 255))  # Fill the screen with white
-
-        if self.capturing:
-            font = pygame.font.Font(None, 36)
-            capture_message = f"Player {self.current_player.number} is capturing..."
-            text_surface = font.render(capture_message, True, (255, 0, 0))
-            self.screen.blit(text_surface, (600,300))
-
-        if self.pause:
-            font = pygame.font.Font(None, 36)
-            text = font.render("Game Paused", True, (255, 0, 0))  # Red text
-            self.screen.blit(text, (600, 300))  # Adjust position as needed
-
-        # Draw the pause button
-        pygame.draw.rect(self.screen, (0, 0, 0), self.pause_button_rect)
-        font = pygame.font.Font(None, 36)
-        text = font.render("Pause", True, (255, 255, 255))
-        self.screen.blit(text, self.pause_button_rect)
-
-        # Draw the restart button
-        pygame.draw.rect(self.screen, (0, 0, 0), self.restart_button_rect)
-        font = pygame.font.Font(None, 36)
-        text = font.render("Restart", True, (255, 255, 255))
-        self.screen.blit(text, self.restart_button_rect)
-
-        # Draw the player turn
-        font = pygame.font.Font(None, 36)
-        text = font.render(f"Player {self.current_player.number}'s turn", True, (0, 0, 0))
-        self.screen.blit(text, (1200, 10))  # Adjust the position as needed
-
-        for i, seeds in enumerate(self.board.houses):
-            if i == 6 or i == 13:  # Stores
-                pygame.draw.circle(self.screen, (0, 0, 0), self.get_pos_of_house(i), 90)
-            else:  # Small holes
-                pygame.draw.circle(self.screen, (0, 0, 0), self.get_pos_of_house(i), 45)
-            # Draw the number of seeds in each house
-            font = pygame.font.Font(None, 36)
-            text = font.render(str(seeds), True, (255, 255, 255))
-            self.screen.blit(text, self.get_pos_of_house(i))
-            # Draw the index of each house
-            index_font = pygame.font.Font(None, 24)
-            index_text = index_font.render(str(i), True, (255, 0, 0))  # Red text
-            self.screen.blit(index_text, (self.get_pos_of_house(i)[0], self.get_pos_of_house(i)[1] - 30))  # Draw above the house
-        
-        # Draw the cursor with the number of seeds to move
-        cursor_text = font.render(f"{self.seeds_to_move}", True, (0, 0, 0))  # Black text
-        cursor_width, cursor_height = self.cursor_image.get_size()
-
-        # Flip the cursor if it's player 2's turn
-        if self.current_player.number == 2:
-            cursor_rect = pygame.Rect(self.cursor_pos[0] - cursor_width // 2, self.cursor_pos[1] - cursor_height, cursor_width, cursor_height)
-            cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
-            self.screen.blit(cursor_image_flipped, cursor_rect)
-            text_pos = (cursor_rect.center[0], cursor_rect.center[1] - 20)  # Adjust the y-coordinate
-        else:
-            cursor_rect = self.cursor_image.get_rect(center=(self.cursor_pos[0], self.cursor_pos[1] + self.cursor_image.get_height() // 2))
-            self.screen.blit(self.cursor_image, cursor_rect)
-            text_pos = cursor_rect.center
-        
-        self.screen.blit(cursor_text, text_pos)
-        pygame.display.flip()
-
     # Add a new method to start a move animation
     def start_move(self, source_house, seeds_to_move):
         self.animating = True
@@ -320,7 +247,7 @@ class CongkakGame:
                 else:
                     self.handle_event(event)
             self.update()
-            self.draw()
+            self.drawer.draw()
             pygame.display.flip()
 
     def get_house_at_pos(self, pos):
