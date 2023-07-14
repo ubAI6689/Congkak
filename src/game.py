@@ -9,46 +9,110 @@ from animator import Animator
 from config import *
 
 class CongkakGame:
-    def __init__(self, screen):
-        self.screen = screen  # Pygame screen for drawing
-        self.board = Board()  # The game board
-        self.drawer = Drawer(screen, self) # The game drawer
-        self.animator = Animator(self) # The game animator
-        self.players = [Player(i) for i in PLAYER_NUMBERS]  # The two players
-        self.current_player = self.players[0]  # The current player
 
-        self.clock = pygame.time.Clock()  # Pygame clock for limiting the framerate
-        self.frames_elapsed = 0  # Count the number of frames elapsed
+    PLAYER_1_SELECTING = 0
+    PLAYER_2_SELECTING = 1
+    CONFIRM_SELECTION = 2
+    PLAYING = 3
+    ONE_PLAYER_ENDED_CAN_CONTINUE = 4
+    ONE_PLAYER_ENDED_WAITING = 5
+    TURN_BASED = 6
+
+    def __init__(self, screen):
+        
+        self.screen = screen
+        self.board = Board()
+        self.drawer = Drawer(screen, self)
+        self.animator = Animator(self)
+        self.players = [Player(i) for i in PLAYER_NUMBERS]
+        self.current_player = self.players[0]
+        self.game_state = self.PLAYER_1_SELECTING
+        self.starting_house = [None, None]
+        self.hovered_house = None
+
+        self.clock = pygame.time.Clock()  # Pygame clock for limiting framerate
+        self.frame_elapsed = 0  # The number of frames elapsed since the last move
 
         # Pause state
         self.pause = False
         self.game_over = False
 
     def handle_event(self, event):
-        # Handle a single Pygame event
+        if self.game_state == self.PLAYER_1_SELECTING:
+            self.handle_event_player_1_selecting(event)
+        elif self.game_state == self.PLAYER_2_SELECTING:
+            self.handle_event_player_2_selecting(event)
+        elif self.game_state == self.CONFIRM_SELECTION:
+            self.handle_event_confirm_selection(event)
+        elif self.game_state == self.PLAYING:
+            self.handle_event_playing(event)
+
+    def handle_event_player_1_selecting(self, event):
+        pos = pygame.mouse.get_pos()
+        house = self.get_house_at_pos(pos)
+        if house is not None and PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE:
+            if event.type == pygame.MOUSEMOTION:
+                # Set the hovered house as the player moves the mouse
+                self.hovered_house = house
+            elif event.type == pygame.MOUSEBUTTONUP:
+                # Confirm the selection when the player clicks
+                self.starting_house[0] = house
+                self.game_state = self.PLAYER_2_SELECTING
+                self.change_player()  # Change to player 2 after confirming player 1's selection
+
+    def handle_event_player_2_selecting(self, event):
+        pos = pygame.mouse.get_pos()
+        house = self.get_house_at_pos(pos)
+        if house is not None and PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE:
+            if event.type == pygame.MOUSEMOTION:
+                # Set the hovered house as the player moves the mouse
+                self.hovered_house = house
+            elif event.type == pygame.MOUSEBUTTONUP:
+                # Confirm the selection when the player clicks
+                self.starting_house[1] = house
+                self.game_state = self.CONFIRM_SELECTION
+
+    def handle_event_confirm_selection(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
-            
             pos = pygame.mouse.get_pos()
+            yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 + 50, 100, 50))
+            no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 50, 100, 50))
+            if yes_button_rect.collidepoint(pos):
+                self.game_state = self.PLAYING
+            elif no_button_rect.collidepoint(pos):
+                self.game_state = self.PLAYER_1_SELECTING
 
-            # Check if the pause button was clicked
-            if self.drawer.pause_button_rect.collidepoint(pos):
-                self.toggle_pause()
 
-            # Check if the restart button was clicked
-            if self.drawer.restart_button_rect.collidepoint(pos):
-                self.restart()
+
+    def handle_event_playing(self, event):
+        # Your existing game playing event handling logic goes here
+        pass
+
+    # def handle_event(self, event):
+    #     # Handle a single Pygame event
+    #     if event.type == pygame.MOUSEBUTTONUP:
             
-            if not self.animator.get_animating():
-                # Check if the mouse clicked on one of the current player's houses
-                house = self.get_house_at_pos(pos)
-                if house is not None and house != PLAYER_1_STORE and house != PLAYER_2_STORE:  # make sure stores cannot be clicked
-                    # get seeds in the house
-                    seeds = self.board.houses[house]
-                    if seeds > 0:
-                        # Check if the house is in the current player's row
-                        if (self.current_player.number == PLAYER_1 and PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE) or (self.current_player.number == PLAYER_2 and PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE):
-                            seeds_to_move = self.board.sow_seeds(house, self.current_player)
-                            self.animator.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
+    #         pos = pygame.mouse.get_pos()
+
+    #         # Check if the pause button was clicked
+    #         if self.drawer.pause_button_rect.collidepoint(pos):
+    #             self.toggle_pause()
+
+    #         # Check if the restart button was clicked
+    #         if self.drawer.restart_button_rect.collidepoint(pos):
+    #             self.restart()
+            
+    #         if not self.animator.get_animating():
+    #             # Check if the mouse clicked on one of the current player's houses
+    #             house = self.get_house_at_pos(pos)
+    #             if house is not None and house != PLAYER_1_STORE and house != PLAYER_2_STORE:  # make sure stores cannot be clicked
+    #                 # get seeds in the house
+    #                 seeds = self.board.houses[house]
+    #                 if seeds > 0:
+    #                     # Check if the house is in the current player's row
+    #                     if (self.current_player.number == PLAYER_1 and PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE) or (self.current_player.number == PLAYER_2 and PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE):
+    #                         seeds_to_move = self.board.sow_seeds(house, self.current_player)
+    #                         self.animator.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
 
     def update(self):
         if self.game_over:
@@ -121,13 +185,7 @@ class CongkakGame:
         total_row_width = total_house_width * INIT_HOUSE_ROW - 1.5 * gap
         start_pos = 0.5 * SCREEN_WIDTH - total_row_width / 2
 
-        if house < PLAYER_2_STORE:  # Top row
-            x = start_pos + total_house_width * house
-            y = 0.4 * SCREEN_HEIGHT
-        elif house < PLAYER_1_STORE and house > PLAYER_2_STORE:  # Bottom row
-            x = start_pos + total_house_width * (PLAYER_1_STORE - 1 - house)
-            y = 0.6 * SCREEN_HEIGHT
-        else:  # The stores
+        if house in (PLAYER_1_STORE, PLAYER_2_STORE):  # The stores
             if house == PLAYER_1_STORE:
                 first_house_x, _ = self.get_pos_of_house(0)
                 x = first_house_x - STORE_SIZE - gap  # Position the store to the left of the first house
@@ -135,7 +193,16 @@ class CongkakGame:
                 last_house_x, _ = self.get_pos_of_house(PLAYER_2_STORE - 1)
                 x = last_house_x + STORE_SIZE + gap  # Position the store to the right of the last house
             y = 0.5 * SCREEN_HEIGHT
+        else:  # Non-store houses
+            if house < PLAYER_2_STORE:  # Top row
+                x = start_pos + total_house_width * house
+                y = 0.4 * SCREEN_HEIGHT
+            else:  # Bottom row
+                x = start_pos + total_house_width * (PLAYER_1_STORE - 1 - house)
+                y = 0.6 * SCREEN_HEIGHT
+
         return x, y
+
     
     def toggle_pause(self):
         self.pause = not self.pause

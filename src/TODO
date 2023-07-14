@@ -1,0 +1,29 @@
+CLASSIC MODE:
+
+Initialization: The game begins with all houses filled with a certain number of seeds. P1 and P2 are prompted to select a house to start from. The cursor for each player is shown on the screen.
+
+Move Selection: Both players select their starting houses, and the seeds start moving from house to house, one at a time, excluding the opponent's store.
+
+Move Continuation: If a player's move ends in their own store, they are allowed to select another of their own houses and continue their move. The game will pause for that player until they select their next starting house.
+
+Waiting State: If a player's move ends in a situation where they cannot continue their turn (ending in an empty house, after a capture, or if all their houses are empty), that player enters a waiting state and must wait for the other player to finish their move.
+
+Capture: If a player's move ends in one of their own empty houses and the opposite house of the opponent has seeds, a capture occurs. The seeds are taken from the opponent's house and added to the player's store. The player then enters a waiting state.
+
+Turn-Based Play: Once any player has finished their move (either by ending in an empty house, capturing seeds, or having no more seeds in their houses), the game transitions into a turn-based mode. The player who finished their move waits for the other player to finish their move, then the waiting player takes their next turn.
+
+End of Game: The game ends when all houses are empty. The player with the most seeds in their store is declared the winner.
+
+TODO:
+
+Game Modes: Implement the classic mode of Congkak game where both players start their moves simultaneously.
+
+Simultaneous Move Selection: Modify the game starting routine to allow both players to select their starting house at the same time.
+
+Simultaneous Animation: Update the animation logic to handle two cursors moving simultaneously.
+
+Turn-based Intermission: Implement a waiting state for a player who finishes their move before the other player. This player will not be able to start their next move until the other player has also finished.
+
+Rock-Paper-Scissors Tiebreaker: If both players select moves that will end in the same house, trigger a mini-game of rock-paper-scissors to determine who gets the house. The loser will have to select a new move.
+
+Game UI Updates: Update the game interface to reflect these changes. This could include displaying prompts for the rock-paper-scissors mini-game, indicating when a player is in a waiting state, and handling input for two cursors.
