@@ -92,16 +92,16 @@ class Drawer:
         if self.game.game_state == self.game.CONFIRM_SELECTION:
             # Draw the confirmation message
             confirm_font = pygame.font.Font(None, 36)
-            confirm_color = pygame.Color('white')
+            confirm_color = pygame.Color('black')
             confirm_text = "Are you sure you want to start with these houses? (Yes/No)"
             confirm_surf = confirm_font.render(confirm_text, True, confirm_color)
             confirm_rect = confirm_surf.get_rect()
-            confirm_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+            confirm_rect.center = (0.5 * SCREEN_WIDTH , 0.1 * SCREEN_HEIGHT)
             self.screen.blit(confirm_surf, confirm_rect)
 
             # Draw the "Yes" and "No" buttons
-            yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 + 50, 100, 50))
-            no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2 + 50, 100, 50))
+            yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
+            no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
             pygame.draw.rect(self.screen, (0, 255, 0), yes_button_rect)  # Green for "Yes"
             pygame.draw.rect(self.screen, (255, 0, 0), no_button_rect)  # Red for "No"
 
