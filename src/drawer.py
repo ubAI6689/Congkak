@@ -36,7 +36,7 @@ class Drawer:
         pygame.display.flip()
 
     def draw_capture_message(self):
-        if self.game.capturing:
+        if self.game.animator.capturing:
             font = pygame.font.Font(CAPTURE_FONT, CAPTURE_FONT_SIZE)
             capture_message = f"Player {self.game.current_player.number} is capturing..."
             text_surface = font.render(capture_message, True, (CAPTURE_MSG_COLOR))
@@ -100,17 +100,19 @@ class Drawer:
 
     def draw_cursor(self):
         font = pygame.font.Font(CURSOR_FONT, CURSOR_FONT_SIZE)
-        cursor_text = font.render(f"{self.game.seeds_to_move}", True, CURSOR_FONT_COLOR)  # Black text
+        cursor_pos = self.game.animator.get_cursor_pos()
+        seeds_to_move = self.game.animator.get_seeds_to_move()
+        cursor_text = font.render(f"{seeds_to_move}", True, CURSOR_FONT_COLOR)  # Black text
         cursor_width, cursor_height = self.cursor_image.get_size()
 
         # Flip the cursor if it's player 2's turn
         if self.game.current_player.number == 2:
-            cursor_rect = pygame.Rect(self.game.cursor_pos[0] - cursor_width // 2, self.game.cursor_pos[1] - cursor_height, cursor_width, cursor_height)
+            cursor_rect = pygame.Rect(cursor_pos[0] - cursor_width // 2, cursor_pos[1] - cursor_height, cursor_width, cursor_height)
             cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
             self.screen.blit(cursor_image_flipped, cursor_rect)
             text_pos = (cursor_rect.center[0], cursor_rect.center[1] - 20)  # Adjust the y-coordinate
         else:
-            cursor_rect = self.cursor_image.get_rect(center=(self.game.cursor_pos[0], self.game.cursor_pos[1] + self.cursor_image.get_height() // 2))
+            cursor_rect = self.cursor_image.get_rect(center=(cursor_pos[0], cursor_pos[1] + self.cursor_image.get_height() // 2))
             self.screen.blit(self.cursor_image, cursor_rect)
             text_pos = cursor_rect.center
         
