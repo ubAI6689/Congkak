@@ -17,21 +17,16 @@ class Drawer:
 
         # Load a cursor image
         self.cursor_image = pygame.image.load(CURSOR_IMAGE)
-        
+
+        # YES and NO buttons for confirming starting houses
+        self.yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 150, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
+        self.no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
+
         # Hide the default cursor
         pygame.mouse.set_visible(False)
 
     def draw(self):
         self.screen.fill((SCREEN_FILL_COLOR))  # Fill the screen with white
-        
-        self.draw_houses()
-        self.draw_player_turn()
-        self.draw_restart_button()
-        self.draw_pause_message()
-        self.draw_pause_button()
-        self.draw_capture_message()
-        self.draw_cursor()
-        self.draw_winning_message()
 
         if self.game.game_state in (self.game.PLAYER_1_SELECTING, self.game.PLAYER_2_SELECTING):
             self.draw_selecting()
@@ -43,6 +38,15 @@ class Drawer:
         elif self.game.game_state == self.game.PLAYING:
             self.draw_playing()
 
+                
+        self.draw_player_turn()
+        self.draw_restart_button()
+        self.draw_pause_message()
+        self.draw_pause_button()
+        self.draw_capture_message()
+        self.draw_winning_message()
+        self.draw_houses()
+        self.draw_cursor()
         pygame.display.flip()
 
     def draw_selecting(self):
@@ -52,7 +56,6 @@ class Drawer:
             if starting_house is not None:
                 x, y = self.game.get_pos_of_house(starting_house)
                 pygame.draw.circle(self.screen, GREEN, (x, y), HOUSE_SIZE + SELECTION_THICKNESS)
-
 
     def draw_hover_highlight(self):
         # Draw a special highlight around the hovered house
@@ -79,12 +82,14 @@ class Drawer:
             else:
                 return  # No prompt text in other game states
 
+            # Create the surface for the prompt text
             prompt_surf = prompt_font.render(prompt_text, True, prompt_color)
             prompt_rect = prompt_surf.get_rect()
-            if player_num == PLAYER_1:
-                prompt_rect.midtop = (SCREEN_WIDTH / 2, 0)
-            else:  # Player 2
-                prompt_rect.midbottom = (SCREEN_WIDTH / 2, SCREEN_HEIGHT)
+
+            # Position the prompt in the middle of the top of the screen
+            prompt_rect.midtop = (SCREEN_WIDTH / 2, 0.1 * SCREEN_HEIGHT)
+
+            # Draw the prompt text on the screen
             self.screen.blit(prompt_surf, prompt_rect)
 
 
@@ -93,17 +98,28 @@ class Drawer:
             # Draw the confirmation message
             confirm_font = pygame.font.Font(None, 36)
             confirm_color = pygame.Color('black')
-            confirm_text = "Are you sure you want to start with these houses? (Yes/No)"
+            confirm_text = "Are you sure you want to start with these houses?"
             confirm_surf = confirm_font.render(confirm_text, True, confirm_color)
             confirm_rect = confirm_surf.get_rect()
             confirm_rect.center = (0.5 * SCREEN_WIDTH , 0.1 * SCREEN_HEIGHT)
             self.screen.blit(confirm_surf, confirm_rect)
 
-            # Draw the "Yes" and "No" buttons
-            yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
+            # Draw the "Yes" button
+            yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 150, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
+            pygame.draw.rect(self.screen, PAUSE_BUTTON_COLOR, yes_button_rect)
+            yes_font = pygame.font.Font(None, PAUSE_BUTTON_FONT_SIZE)
+            yes_text = yes_font.render("Yes", True, WHITE)
+            yes_text_rect = yes_text.get_rect(center=yes_button_rect.center)
+            self.screen.blit(yes_text, yes_text_rect)
+
+            # Draw the "No" button
             no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
-            pygame.draw.rect(self.screen, (0, 255, 0), yes_button_rect)  # Green for "Yes"
-            pygame.draw.rect(self.screen, (255, 0, 0), no_button_rect)  # Red for "No"
+            pygame.draw.rect(self.screen, PAUSE_BUTTON_COLOR, no_button_rect)
+            no_font = pygame.font.Font(None, PAUSE_BUTTON_FONT_SIZE)
+            no_text = no_font.render("No", True, WHITE)
+            no_text_rect = no_text.get_rect(center=no_button_rect.center)
+            self.screen.blit(no_text, no_text_rect)
+
 
 
     def draw_starting_house_selections(self):

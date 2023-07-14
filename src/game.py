@@ -70,17 +70,19 @@ class CongkakGame:
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Confirm the selection when the player clicks
                 self.starting_house[1] = house
+                self.change_player()  # Change back to player 1
                 self.game_state = self.CONFIRM_SELECTION
 
     def handle_event_confirm_selection(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
-            yes_button_rect = pygame.Rect((SCREEN_WIDTH / 2 - 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
-            no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
-            if yes_button_rect.collidepoint(pos):
+            if self.drawer.yes_button_rect.collidepoint(pos):
                 self.game_state = self.PLAYING
-            elif no_button_rect.collidepoint(pos):
-                self.change_player()  # Change back to player 1
+            elif self.drawer.no_button_rect.collidepoint(pos):
+                # reset house to None
+                self.starting_house[0] = None
+                self.starting_house[1] = None
+                self.hovered_house = None
                 self.game_state = self.PLAYER_1_SELECTING
 
     def handle_event_playing(self, event):
