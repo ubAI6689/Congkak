@@ -30,8 +30,12 @@ class Board:
             return PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE
 
     def check_game_end(self):
-        # Check if all houses are empty
-        return all(seeds == 0 for seeds in self.houses[PLAYER_2_MIN_HOUSE:PLAYER_2_MAX_HOUSE+1] + self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MAX_HOUSE+1])
+        # Check if all houses on both sides are empty
+        player_1_houses_empty = all(seeds == 0 for seeds in self.houses[PLAYER_1_MIN_HOUSE:PLAYER_1_MAX_HOUSE+1])
+        player_2_houses_empty = all(seeds == 0 for seeds in self.houses[PLAYER_2_MIN_HOUSE:PLAYER_2_MAX_HOUSE+1])
+        
+        return player_1_houses_empty and player_2_houses_empty
+
 
 
     def check_winner(self):

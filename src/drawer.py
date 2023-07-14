@@ -17,6 +17,7 @@ class Drawer:
 
         # Load a cursor image
         self.cursor_image = pygame.image.load(CURSOR_IMAGE)
+        
         # Hide the default cursor
         pygame.mouse.set_visible(False)
 
@@ -29,7 +30,6 @@ class Drawer:
         self.draw_restart_button()
         self.draw_player_turn()
         self.draw_winning_message()
-
         self.draw_houses()
         self.draw_cursor()
 
@@ -43,17 +43,18 @@ class Drawer:
             self.screen.blit(text_surface, CAPTURE_MSG_DIM)
 
     def draw_winning_message(self):
-        if self.game.board.check_game_end():
+        if self.game.game_over:
             winner = self.game.board.check_winner()
             if winner is not None:
+                winning_message = f"Game over. Player {winner} win."
                 font = pygame.font.Font(CAPTURE_FONT, CAPTURE_FONT_SIZE)
-                capture_message = f"Player {winner} win."
-                text_surface = font.render(capture_message, True, RED)
+                text_surface = font.render(winning_message, True, RED)
                 self.screen.blit(text_surface, CAPTURE_MSG_DIM)
             else:
+                print("Draw method: It's a draw.")
+                draw_message = f"It's a draw."
                 font = pygame.font.Font(CAPTURE_FONT, CAPTURE_FONT_SIZE)
-                capture_message = f"It's a draw."
-                text_surface = font.render(capture_message, True, RED)
+                text_surface = font.render(draw_message, True, RED)
                 self.screen.blit(text_surface, CAPTURE_MSG_DIM)
 
     def draw_pause_message(self):
@@ -96,7 +97,6 @@ class Drawer:
             index_font = pygame.font.Font(HOUSE_INDEX_FONT, HOUSE_INDEX_FONT_SIZE)
             index_text = index_font.render(str(i), True, HOUSE_INDEX_COLOR)  # Red text
             self.screen.blit(index_text, (self.game.get_pos_of_house(i)[0], self.game.get_pos_of_house(i)[1] - 30))  # Draw above the house
-
 
     def draw_cursor(self):
         font = pygame.font.Font(CURSOR_FONT, CURSOR_FONT_SIZE)

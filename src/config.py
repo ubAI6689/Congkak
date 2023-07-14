@@ -7,6 +7,16 @@ SCREEN_HEIGHT = 720
 # Frame per second limit
 FPS_LIMIT = 60
 
+# Animation
+ANIMATION_SPEED = 10
+SLEEP_TIME = 0.1
+CAPTURE_PHASES = [1, 2]
+
+# Game colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
 # Player details
 PLAYER_1 = 1
 PLAYER_2 = 2
@@ -28,16 +38,6 @@ PLAYER_1_MAX_HOUSE = PLAYER_1_STORE - 1 # 12 | 14
 PLAYER_2_MIN_HOUSE = 0 # 0 | 0
 PLAYER_2_MAX_HOUSE = PLAYER_2_STORE - 1 # 5 | 6
 STORE_INDICES = [PLAYER_1_STORE, PLAYER_2_STORE]
-
-# Animation
-ANIMATION_SPEED = 10
-SLEEP_TIME = 0.1
-CAPTURE_PHASES = [1, 2]
-
-# Game colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
 
 # Seed font and size
 SEED_FONT = None
