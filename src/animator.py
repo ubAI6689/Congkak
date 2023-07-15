@@ -160,19 +160,19 @@ class Animator:
 
         # If the cursor has reached the target position
         if cursor_pos == target_pos:
-            time.sleep(SLEEP_TIME)  # Pause for 5 millisecond
-            self.game.board.houses[target_house] += 1
-            # Move a seed from the source house to the target house
-            set_seeds_to_move(seeds_to_move - 1)
-            print(f"Seeds to move: {seeds_to_move}")
-            if target_house == self.game.current_player.store:
-                set_passed_store(True)
-                print(f"Passed store is now {get_passed_store()}")
-
             # If all seeds have been moved, check if the movement continues or not
             if seeds_to_move == 0:
                 self.handle_end_of_movement()
             else:
+                time.sleep(SLEEP_TIME)  # Pause for 5 millisecond
+                self.game.board.houses[target_house] += 1
+                # Move a seed from the source house to the target house
+                set_seeds_to_move(seeds_to_move - 1)
+                print(f"Seeds to move Player {player_number}: {seeds_to_move}")
+                if target_house == self.game.current_player.store:
+                    set_passed_store(True)
+                    print(f"Passed store is now {get_passed_store()}")
+
                 # Calculate the next target house index
                 next_house = (target_house + 1) % MAX_HOUSE_COUNT
                 # Skip the opponent's store and check if the movement continues
@@ -189,30 +189,44 @@ class Animator:
                 set_target_pos(self.game.get_pos_of_house(target_house))
 
     def handle_end_of_movement(self):
+        print("<handle_end_of_movement>")
         # If the target house is the current player's store, the player gets another turn
         # We need to check for both players now
-        if self.get_target_house_1() == self.game.current_player.store and self.get_target_house_2() == self.game.current_player.store:
-            self.set_passed_store_1(False)  # Reset passed_store to False at the end of a move
-            self.set_passed_store_2(False)  # Reset passed_store to False at the end of a move
-            self.set_animating(False)  # Reset animating to False at the end of a move
+        if (self.get_target_house_1() == self.game.current_player.store and self.get_seeds_to_move_1() == 0) or (self.get_target_house_2() == self.game.current_player.store and self.get_seeds_to_move_2() == 0):
+            self.game_state = self.PAUSE_FOR_NEXT_MOVE
+            # Reset passed_store and animating to False at the end of a move
+            self.set_passed_store_1(False)
+            self.set_passed_store_2(False)
+            self.set_animating(False)
             print(f"Move ends in store. Player {self.game.current_player.number} gets another turn.")
             # If the current player's houses are all empty, end the move
             if self.game.board.is_row_empty(self.game.current_player.number):
                 self.game.end_move()
         else:
-            # If the target house is not the current player's store, switch the current player
-            pass
-    
-    # def move_towards(self, pos, target, base_speed):
-    #     # Move the position pos towards the target position at a speed proportional to the distance
-    #     dx = target[0] - pos[0]
-    #     dy = target[1] - pos[1]
-    #     dist = math.sqrt(dx**2 + dy**2)
-    #     speed = base_speed * dist / MAX_DISTANCE
-    #     if dist <= speed:
-    #         return target
-    #     else:
-    #         return (pos[0] + dx / dist * speed, pos[1] + dy / dist * speed)
+            # If the target house is non-empty and not a store, continue the movement
+            if (self.game.board.houses[self.get_target_house_1()] > 1 and self.get_seeds_to_move_1() > 0) or (self.game.board.houses[self.get_target_house_2()] > 1 and self.get_seeds_to_move_2() > 0):
+                seeds_to_drop_1 = self.game.board.houses[self.get_target_house_1()]
+                seeds_to_drop_2 = self.game.board.houses[self.get_target_house_2()]
+                print(f"Move continues to house {(self.get_target_house_1() + 1 + seeds_to_drop_1) % MAX_HOUSE_COUNT} and house {(self.get_target_house_2() + 1 + seeds_to_drop_2) % MAX_HOUSE_COUNT}.")
+                self.game.board.houses[self.get_target_house_1()] = 0  # Empty the target house
+                self.game.board.houses[self.get_target_house_2()] = 0  # Empty the target house
+                self.set_seeds_to_move_1(seeds_to_drop_1)  # Update the remaining seeds to move
+                self.set_seeds_to_move_2(seeds_to_drop_2)  # Update the remaining seeds to move
+                # Move the cursor to the next house before continuing the movement
+                self.set_target_house_1((self.get_target_house_1() + 1) % MAX_HOUSE_COUNT)
+                self.set_target_house_2((self.get_target_house_2() + 1) % MAX_HOUSE_COUNT)
+                # Skip the opponent's store
+                if (self.game.current_player.number == PLAYER_1 and self.get_target_house_1() == PLAYER_2_STORE) or (self.game.current_player.number == PLAYER_2 and self.get_target_house_1() == PLAYER_1_STORE):
+                    self.set_target_house_1((self.get_target_house_1() + 1) % MAX_HOUSE_COUNT)
+                if (self.game.current_player.number == PLAYER_1 and self.get_target_house_2() == PLAYER_2_STORE) or (self.game.current_player.number == PLAYER_2 and self.get_target_house_2() == PLAYER_1_STORE):
+                    self.set_target_house_2((self.get_target_house_2() + 1) % MAX_HOUSE_COUNT)
+                self.set_target_pos_1(self.game.get_pos_of_house(self.get_target_house_1()))
+                self.set_target_pos_2(self.game.get_pos_of_house(self.get_target_house_2()))
+            else:
+                # If the target house is empty or the player has no more seeds to move, check for a capture
+                if (self.game.board.houses[self.get_target_house_1()] == 0 or self.get_seeds_to_move_1() == 0) and (self.game.board.houses[self.get_target_house_2()] == 0 or self.get_seeds_to_move_2() == 0):
+                    # self.handle_capture_state()
+                    pass
 
 
     def move_towards(self, pos, target, speed):

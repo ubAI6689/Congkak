@@ -14,7 +14,7 @@ class CongkakGame:
     PLAYER_2_SELECTING = 1
     CONFIRM_SELECTION = 2
     BOTH_PLAYING = 3
-    ONE_PLAYER_ENDED_CAN_CONTINUE = 4
+    PAUSE_FOR_NEXT_MOVE = 4
     ONE_PLAYER_ENDED_WAITING = 5
     TURN_BASED = 6
 
@@ -51,8 +51,8 @@ class CongkakGame:
             self.handle_event_confirm_selection(event)
         # elif self.game_state == self.BOTH_PLAYING:
         #     self.handle_event_both_playing(event)
-        elif self.game_state == self.ONE_PLAYER_ENDED_CAN_CONTINUE:
-            self.handle_event_one_player_ended_can_continue(event)
+        # elif self.game_state == self.ONE_PLAYER_ENDED_CAN_CONTINUE:
+        #     self.handle_event_one_player_ended_can_continue(event)
         elif self.game_state == self.ONE_PLAYER_ENDED_WAITING:
             self.handle_event_one_player_ended_waiting(event)
         elif self.game_state == self.TURN_BASED:
@@ -71,12 +71,17 @@ class CongkakGame:
                     # Set the hovered house as the player moves the mouse
                     self.hovered_house = house
             elif event.type == pygame.MOUSEBUTTONUP:
-                # Confirm the selection when the player clicks
-                self.starting_house[0] = house
-                print("Player 1's starting house: ", self.starting_house[0]) 
-                self.animator.set_cursor_pos_1(self.get_pos_of_house(house))  # Set the cursor position to the selected house
-                self.game_state = self.PLAYER_2_SELECTING
-                self.change_player()  # Change to player 2 after confirming player 1's selection
+                # Player 2 still has seeds to move, don't change the current player
+                if self.animator.get_seeds_to_move_2() > 0:
+                    self.starting_house[0] = house
+                    self.animator.start_move_1(self.starting_house[0], self.board.houses[self.starting_house[0]])
+                else:
+                    # Confirm the selection when the player clicks
+                    self.starting_house[0] = house
+                    print("Player 1's starting house: ", self.starting_house[0]) 
+                    self.animator.set_cursor_pos_1(self.get_pos_of_house(house))  # Set the cursor position to the selected house
+                    self.game_state = self.PLAYER_2_SELECTING
+                    self.change_player()  # Change to player 2 after confirming player 1's selection
 
     def handle_event_player_2_selecting(self, event):
         pos = self.animator.get_cursor_pos_2()
@@ -91,12 +96,17 @@ class CongkakGame:
                     # Set the hovered house as the player moves the mouse
                     self.hovered_house = house
             elif event.type == pygame.MOUSEBUTTONUP:
-                # Confirm the selection when the player clicks
-                self.starting_house[1] = house
-                print("Player 2's starting house: ", self.starting_house[1]) 
-                self.animator.set_cursor_pos_2(self.get_pos_of_house(house))  # Set the cursor position to the selected house
-                self.change_player()  # Change back to player 1
-                self.game_state = self.CONFIRM_SELECTION
+                # Player 1 still has seeds to move, don't change the current player
+                if self.animator.get_seeds_to_move_1() > 0:
+                    self.starting_house[1] = house
+                    self.animator.start_move_2(self.starting_house[1], self.board.houses[self.starting_house[1]])
+                else:
+                    # Confirm the selection when the player clicks
+                    self.starting_house[1] = house
+                    print("Player 2's starting house: ", self.starting_house[1]) 
+                    self.animator.set_cursor_pos_2(self.get_pos_of_house(house))  # Set the cursor position to the selected house
+                    self.change_player()  # Change back to player 1
+                    self.game_state = self.CONFIRM_SELECTION
 
     def handle_event_confirm_selection(self, event):
         if event.type == pygame.MOUSEBUTTONUP:
@@ -115,9 +125,15 @@ class CongkakGame:
                 self.hovered_house = None
                 self.game_state = self.PLAYER_1_SELECTING
 
-    def handle_event_playing(self, event):
-        # Your existing game playing event handling logic goes here
-        pass
+    def handle_event_pause_for_next_move(self, event):
+        # Check which player(s) ended up in their store
+        if self.animator.get_target_house_1() == PLAYER_1_STORE and self.animator.get_target_house_2() == PLAYER_2_STORE:
+            self.handle_event_player_1_selecting(event)
+            self.handle_event_player_2_selecting(event)
+        elif self.animator.get_target_house_1() == PLAYER_1_STORE:
+            self.handle_event_player_1_selecting(event)
+        elif self.animator.get_target_house_2() == PLAYER_2_STORE:
+            self.handle_event_player_2_selecting(event)
 
     # def handle_event(self, event):
     #     # Handle a single Pygame event
