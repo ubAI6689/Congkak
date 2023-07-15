@@ -167,7 +167,7 @@ class CongkakGame:
         if self.animator.get_capturing():
             self.animator.update_capture_state()
         elif self.animator.get_animating() and not self.pause:
-            self.animator.animate_seeds_movement()
+            self.animator.animate_movement()
         else:
             if not self.pause:
                 pos = pygame.mouse.get_pos()
@@ -280,6 +280,13 @@ class CongkakGame:
                 y = 0.6 * SCREEN_HEIGHT
 
         return x, y
+    
+    def get_opponent(self, player):
+        # Assuming you have two players, player1 and player2
+        if player == self.players[0]:
+            return self.players[1]
+        else:
+            return self.players[0]
     
     def toggle_pause(self):
         self.pause = not self.pause
