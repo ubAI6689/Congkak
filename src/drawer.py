@@ -54,29 +54,6 @@ class Drawer:
 
         pygame.display.flip()
 
-    # def draw(self):
-    #     self.screen.fill((SCREEN_FILL_COLOR))  # Fill the screen with white
-
-    #     if self.game.game_state in (self.game.PLAYER_1_SELECTING, self.game.PLAYER_2_SELECTING):
-    #         self.draw_selecting()
-    #         self.draw_start_prompt()
-    #         self.draw_hover_highlight()
-    #     elif self.game.game_state == self.game.CONFIRM_SELECTION:
-    #         self.draw_selecting()
-    #         self.draw_confirmation()
-    #     elif self.game.game_state == self.game.BOTH_PLAYING:
-    #         self.draw_playing()
-
-    #     self.draw_player_turn()
-    #     self.draw_restart_button()
-    #     self.draw_pause_message()
-    #     self.draw_pause_button()
-    #     self.draw_capture_message()
-    #     self.draw_winning_message()
-    #     self.draw_houses()
-    #     self.draw_cursor()
-    #     pygame.display.flip()
-
     def draw_selecting(self):
     # Draw a special highlight around the selected starting house
         for player_num in PLAYER_NUMBERS:
@@ -189,13 +166,17 @@ class Drawer:
         pygame.draw.rect(self.screen, PAUSE_BUTTON_COLOR, self.pause_button_rect)
         font = pygame.font.Font(PAUSE_BUTTON_FONT, PAUSE_BUTTON_FONT_SIZE)
         text = font.render("Pause", True, WHITE)
-        self.screen.blit(text, self.pause_button_rect)
+        text_rect = text.get_rect()
+        text_rect.center = self.pause_button_rect.center
+        self.screen.blit(text, text_rect)
 
     def draw_restart_button(self):
         pygame.draw.rect(self.screen, RESTART_BUTTON_COLOR, self.restart_button_rect)
         font = pygame.font.Font(RESTART_BUTTON_FONT, RESTART_BUTTON_FONT_SIZE)
         text = font.render("Restart", True, WHITE)
-        self.screen.blit(text, self.restart_button_rect)
+        text_rect = text.get_rect()
+        text_rect.center = self.restart_button_rect.center
+        self.screen.blit(text, text_rect)
 
     def draw_player_turn(self):
         font = pygame.font.Font(TURN_MSG_FONT, TURN_MSG_FONT_SIZE)
@@ -221,7 +202,7 @@ class Drawer:
 
             # Draw the index of each house
             index_font = pygame.font.Font(HOUSE_INDEX_FONT, HOUSE_INDEX_FONT_SIZE)
-            index_text = index_font.render(str(i), True, HOUSE_INDEX_COLOR)  # Red text
+            index_text = index_font.render(chr(65 + i), True, HOUSE_INDEX_COLOR)  # Red text
             self.screen.blit(index_text, (self.game.get_pos_of_house(i)[0], self.game.get_pos_of_house(i)[1] - 30))  # Draw above the house
 
     def draw_cursor(self):

@@ -124,8 +124,6 @@ class CongkakGame:
             if self.drawer.yes_button_rect.collidepoint(pos):
                 self.game_state = self.BOTH_PLAYING
                 # Get the seeds from the starting houses
-                # seeds_to_move_1 = self.board.houses[self.starting_house[0]]
-                # seeds_to_move_2 = self.board.houses[self.starting_house[1]]
                 seeds_to_move_1 = self.board.sow_seeds(self.starting_house[0], self.players[0])
                 seeds_to_move_2 = self.board.sow_seeds(self.starting_house[1], self.players[1])
                 # Initiate the move for both players
