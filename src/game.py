@@ -43,6 +43,16 @@ class CongkakGame:
 
 
     def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONUP:
+            pos = pygame.mouse.get_pos()
+            
+            if self.drawer.restart_button_rect.collidepoint(pos):
+                self.restart()
+
+            # Check if the pause button was clicked
+            if self.drawer.pause_button_rect.collidepoint(pos):
+                self.toggle_pause()
+
         if self.game_state == self.PLAYER_1_SELECTING:
             self.handle_event_player_1_selecting(event)
         elif self.game_state == self.PLAYER_2_SELECTING:
@@ -311,14 +321,23 @@ class CongkakGame:
     def restart(self):
         # Reset the game state
         print(f"Restarting...")
+        self.starting_house[0] = None
+        self.starting_house[1] = None
+        self.hovered_house = None
+        self.game_state = self.PLAYER_1_SELECTING
+
         self.animator.set_animating(False) # Reset the animation state
         self.board = Board()  # Create a new board
-        self.current_player = self.players[0]  # Set the current player to player 1
-        self.animator.set_source_house(None)
-        self.animator.set_target_house(None)  # Reset the target house
-        self.animator.set_seeds_to_move(0)  # Reset the seeds to move
-        # self.cursor_pos = (0, 0)  # Reset the cursor position
-        self.animator.set_target_pos(None)  # Reset the target cursor position
-        self.animator.set_passed_store(False)  # Reset the passed store flag
+        self.animator.set_source_house_1(None)
+        self.animator.set_source_house_2(None)
+        self.animator.set_target_house_1(None)  # Reset the target house
+        self.animator.set_target_house_2(None)  # Reset the target house
+        self.animator.set_seeds_to_move_1(0)  # Reset the seeds to move
+        self.animator.set_seeds_to_move_2(0)  # Reset the seeds to move
+        
+        self.animator.set_target_pos_1(None)  
+        self.animator.set_target_pos_2(None)  
+        self.animator.set_passed_store_1(False)  # Reset the passed store flag
+        self.animator.set_passed_store_2(False)  # Reset the passed store flag
         self.pause = False  # Unpause the game if it was paused
         self.game_over = False  # Reset the game over flag

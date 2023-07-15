@@ -176,8 +176,6 @@ class Animator:
                 # Calculate the next target house index
                 next_house = (target_house + 1) % MAX_HOUSE_COUNT
                 # Skip the opponent's store and check if the movement continues
-                # Skip the opponent's store
-                # Skip the opponent's store
                 while (player_number == PLAYER_1 and next_house == PLAYER_2_STORE) or (player_number == PLAYER_2 and next_house == PLAYER_1_STORE):
                     next_house = (next_house + 1) % MAX_HOUSE_COUNT
 

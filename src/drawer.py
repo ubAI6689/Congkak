@@ -23,7 +23,7 @@ class Drawer:
         self.no_button_rect = pygame.Rect((SCREEN_WIDTH / 2 + 50, 0.13 * SCREEN_HEIGHT + 50, 100, 50))
 
         # Hide the default cursor
-        pygame.mouse.set_visible(False)
+        pygame.mouse.set_visible(True)
 
     def draw(self):
         self.screen.fill((SCREEN_FILL_COLOR))  # Fill the screen with white
