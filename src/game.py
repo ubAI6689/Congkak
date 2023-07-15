@@ -13,7 +13,7 @@ class CongkakGame:
     PLAYER_1_SELECTING = 0
     PLAYER_2_SELECTING = 1
     CONFIRM_SELECTION = 2
-    PLAYING = 3
+    BOTH_PLAYING = 3
     ONE_PLAYER_ENDED_CAN_CONTINUE = 4
     ONE_PLAYER_ENDED_WAITING = 5
     TURN_BASED = 6
@@ -33,6 +33,10 @@ class CongkakGame:
         self.clock = pygame.time.Clock()  # Pygame clock for limiting framerate
         self.frame_elapsed = 0  # The number of frames elapsed since the last move
 
+        # Compute the x values.
+        self.leftmost_house_x = self.get_pos_of_house(PLAYER_1_MAX_HOUSE)[0]
+        self.rightmost_house_x = self.get_pos_of_house(PLAYER_1_MIN_HOUSE)[0]
+
         # Pause state
         self.pause = False
         self.game_over = False
@@ -44,16 +48,21 @@ class CongkakGame:
             self.handle_event_player_2_selecting(event)
         elif self.game_state == self.CONFIRM_SELECTION:
             self.handle_event_confirm_selection(event)
-        elif self.game_state == self.PLAYING:
+        elif self.game_state == self.BOTH_PLAYING:
             self.handle_event_playing(event)
 
     def handle_event_player_1_selecting(self, event):
-        pos = pygame.mouse.get_pos()
+        pos = self.animator.get_cursor_pos()
+        if pos is None:
+            return  # Ignore events if the cursor position is None
+        x, y = pos
         house = self.get_house_at_pos(pos)
         if house is not None and PLAYER_1_MIN_HOUSE <= house <= PLAYER_1_MAX_HOUSE:
             if event.type == pygame.MOUSEMOTION:
-                # Set the hovered house as the player moves the mouse
-                self.hovered_house = house
+                # Ignore movements outside the player's houses
+                if self.leftmost_house_x <= pos[0] <= self.rightmost_house_x:
+                    # Set the hovered house as the player moves the mouse
+                    self.hovered_house = house
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Confirm the selection when the player clicks
                 self.starting_house[0] = house
@@ -61,12 +70,17 @@ class CongkakGame:
                 self.change_player()  # Change to player 2 after confirming player 1's selection
 
     def handle_event_player_2_selecting(self, event):
-        pos = pygame.mouse.get_pos()
+        pos = self.animator.get_cursor_pos()
+        if pos is None:
+            return  # Ignore events if the cursor position is None
+        x, y = pos
         house = self.get_house_at_pos(pos)
         if house is not None and PLAYER_2_MIN_HOUSE <= house <= PLAYER_2_MAX_HOUSE:
             if event.type == pygame.MOUSEMOTION:
-                # Set the hovered house as the player moves the mouse
-                self.hovered_house = house
+                # Ignore movements outside the player's houses
+                if self.leftmost_house_x <= pos[0] <= self.rightmost_house_x:
+                    # Set the hovered house as the player moves the mouse
+                    self.hovered_house = house
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Confirm the selection when the player clicks
                 self.starting_house[1] = house
@@ -115,6 +129,23 @@ class CongkakGame:
     #                         seeds_to_move = self.board.sow_seeds(house, self.current_player)
     #                         self.animator.start_move(house, seeds_to_move)  # start moving seeds from the clicked house
 
+    # def update(self):
+    #     if self.game_over:
+    #         return
+    #     if self.animator.get_capturing():
+    #         self.animator.update_capture_state()
+    #     elif self.animator.get_animating() and not self.pause:
+    #         self.animator.animate_seeds_movement()
+    #     else:
+    #         if not self.pause:
+    #             mouse_x, mouse_y = pygame.mouse.get_pos()
+    #             if self.current_player.leftmost_house_x <= mouse_x <= self.current_player.rightmost_house_x:
+    #                 if self.current_player.number == PLAYER_1:
+    #                     mouse_y = 0.4 * SCREEN_HEIGHT
+    #                 else:  # PLAYER_2
+    #                     mouse_y = 0.6 * SCREEN_HEIGHT
+    #                 self.animator.set_cursor_pos((mouse_x, mouse_y))
+
     def update(self):
         if self.game_over:
             return
@@ -124,7 +155,26 @@ class CongkakGame:
             self.animator.animate_seeds_movement()
         else:
             if not self.pause:
-                self.animator.set_cursor_pos(pygame.mouse.get_pos())
+                pos = pygame.mouse.get_pos()
+                if self.game_state in (self.PLAYER_1_SELECTING, self.PLAYER_2_SELECTING):
+                    pos = self.get_corrected_cursor_pos(pos)
+            self.animator.set_cursor_pos(pos)
+
+    def get_corrected_cursor_pos(self, pos):
+        # Get the x limits for the current player's row
+        x_min = self.leftmost_house_x
+        x_max = self.rightmost_house_x
+
+        # Determine the y coordinate based on the current player.
+        if self.current_player.number == 1:
+            y = 0.6 * SCREEN_HEIGHT  # Replace with the y coordinate of player 1's row.
+        else:
+            y = 0.4 * SCREEN_HEIGHT  # Replace with the y coordinate of player 2's row.
+
+        # Limit the x coordinate within the player's row
+        x = max(min(pos[0], x_max), x_min)
+
+        return (x, y)
 
     def end_move(self):
         # End the current player's move
@@ -203,7 +253,6 @@ class CongkakGame:
                 y = 0.6 * SCREEN_HEIGHT
 
         return x, y
-
     
     def toggle_pause(self):
         self.pause = not self.pause
