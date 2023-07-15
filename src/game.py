@@ -84,7 +84,7 @@ class CongkakGame:
                 # Player 2 still has seeds to move, don't change the current player
                 if self.animator.get_seeds_to_move_2() > 0:
                     self.starting_house[0] = house
-                    self.animator.start_move_1(self.starting_house[0], self.board.houses[self.starting_house[0]])
+                    self.animator.start_move(self.starting_house[0], self.board.houses[self.starting_house[0]])
                 else:
                     # Confirm the selection when the player clicks
                     self.starting_house[0] = house
@@ -109,7 +109,7 @@ class CongkakGame:
                 # Player 1 still has seeds to move, don't change the current player
                 if self.animator.get_seeds_to_move_1() > 0:
                     self.starting_house[1] = house
-                    self.animator.start_move_2(self.starting_house[1], self.board.houses[self.starting_house[1]])
+                    self.animator.start_move(self.starting_house[1], self.board.houses[self.starting_house[1]])
                 else:
                     # Confirm the selection when the player clicks
                     self.starting_house[1] = house
@@ -124,8 +124,10 @@ class CongkakGame:
             if self.drawer.yes_button_rect.collidepoint(pos):
                 self.game_state = self.BOTH_PLAYING
                 # Get the seeds from the starting houses
-                seeds_to_move_1 = self.board.houses[self.starting_house[0]]
-                seeds_to_move_2 = self.board.houses[self.starting_house[1]]
+                # seeds_to_move_1 = self.board.houses[self.starting_house[0]]
+                # seeds_to_move_2 = self.board.houses[self.starting_house[1]]
+                seeds_to_move_1 = self.board.sow_seeds(self.starting_house[0], self.players[0])
+                seeds_to_move_2 = self.board.sow_seeds(self.starting_house[1], self.players[1])
                 # Initiate the move for both players
                 self.animator.start_move(self.starting_house[0], seeds_to_move_1, self.starting_house[1], seeds_to_move_2)
             elif self.drawer.no_button_rect.collidepoint(pos):
