@@ -146,27 +146,9 @@ class Animator:
     def animate_seeds_movement(self):
         print("Animating seeds movement...")
         # Animate Player 1
-        self.animate_player_movement(
-            self.get_cursor_pos_1(),
-            self.get_target_pos_1(),
-            self.get_source_house_1(),
-            self.get_target_house_1(),
-            self.get_seeds_to_move_1(),
-            self.set_cursor_pos_1,
-            self.set_target_house_1,
-            self.set_seeds_to_move_1
-        )
+        self.animate_player_movement(1)
         # Animate Player 2
-        self.animate_player_movement(
-            self.cursor_pos_2,
-            self.target_pos_2,
-            self.source_house_2,
-            self.target_house_2,
-            self.seeds_to_move_2,
-            self.set_cursor_pos_2,
-            self.set_target_house_2,
-            self.set_seeds_to_move_2
-        )
+        self.animate_player_movement(2)
 
 
     def animate_player_movement(self, player_number):
