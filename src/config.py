@@ -1,14 +1,18 @@
+import math
+
 # config.py
 
 # Pygame Screen Dimensions
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
+# MAX_DISTANCE = math.sqrt(SCREEN_WIDTH**2 + SCREEN_HEIGHT**2)
+# MOVE_TIME = 0.5
 
 # Frame per second limit
 FPS_LIMIT = 60
 
 # Animation
-ANIMATION_SPEED = 10
+ANIMATION_SPEED = 20
 SLEEP_TIME = 0.1
 CAPTURE_PHASES = [1, 2]
 
@@ -18,6 +22,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 102)
 GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 SELECTION_THICKNESS = 10
 
@@ -27,7 +32,7 @@ PLAYER_2 = 2
 PLAYER_NUMBERS = [PLAYER_1, PLAYER_2]
 
 # Game board
-INIT_SEEDS = 7 # 3 | 6 | 7
+INIT_SEEDS = 6 # 3 | 6 | 7
 INIT_HOUSE_ROW = INIT_SEEDS # 6 | 7
 TOTAL_HOUSE = INIT_HOUSE_ROW * 2 # 12 | 14
 MAX_HOUSE_COUNT = (INIT_SEEDS + 1) * 2 # 14 | 16
@@ -51,7 +56,7 @@ STORE_SEED_FONT = None
 STORE_SEED_FONT_SIZE = 60
 HOUSE_INDEX_FONT = None
 HOUSE_INDEX_FONT_SIZE = 24
-HOUSE_INDEX_COLOR = RED
+HOUSE_INDEX_COLOR = YELLOW
 
 # cursor
 CURSOR_IMAGE = "../assets/handcursor.png"

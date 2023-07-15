@@ -105,8 +105,6 @@ class Drawer:
                 prompt_text = f"Player 1, please select your starting house."
             elif self.game.game_state == self.game.PLAYER_2_SELECTING:
                 prompt_text = f"Player 2, please select your starting house."
-            elif self.game.game_state == self.game.CONFIRM_SELECTION:
-                prompt_text = f"Players, please confirm your starting houses."
             else:
                 return  # No prompt text in other game states
 
@@ -126,7 +124,7 @@ class Drawer:
             # Draw the confirmation message
             confirm_font = pygame.font.Font(None, 36)
             confirm_color = pygame.Color('black')
-            confirm_text = "Are you sure you want to start with these houses?"
+            confirm_text = "START GAME NOW?"
             confirm_surf = confirm_font.render(confirm_text, True, confirm_color)
             confirm_rect = confirm_surf.get_rect()
             confirm_rect.center = (0.5 * SCREEN_WIDTH , 0.1 * SCREEN_HEIGHT)
@@ -147,8 +145,6 @@ class Drawer:
             no_text = no_font.render("No", True, WHITE)
             no_text_rect = no_text.get_rect(center=no_button_rect.center)
             self.screen.blit(no_text, no_text_rect)
-
-
 
     def draw_starting_house_selections(self):
         # Draw a special highlight around the selected starting houses
@@ -203,8 +199,12 @@ class Drawer:
 
     def draw_player_turn(self):
         font = pygame.font.Font(TURN_MSG_FONT, TURN_MSG_FONT_SIZE)
-        text = font.render(f"Player {self.game.current_player.number}'s turn", True, TURN_MSG_COLOR)
-        self.screen.blit(text, (0.85 * SCREEN_WIDTH, 10))  # Adjust the position as needed
+        
+        if self.game.game_state == self.game.BOTH_PLAYING:
+            text = font.render(f"Simultaneous turn", True, TURN_MSG_COLOR)
+        else: 
+            text = font.render(f"Player {self.game.current_player.number}'s turn", True, TURN_MSG_COLOR)    
+        self.screen.blit(text, (0.75 * SCREEN_WIDTH, 10))  # Adjust the position as needed
 
     def draw_houses(self):
         for i, seeds in enumerate(self.game.board.houses):
@@ -234,17 +234,18 @@ class Drawer:
             seeds_to_move = self.game.animator.get_seeds_to_move_2()
         if cursor_pos is None:  # Don't try to draw the cursor if its position is None
             return
-        cursor_text = font.render(f"{seeds_to_move}", True, CURSOR_FONT_COLOR)  # Black text
         cursor_width, cursor_height = self.cursor_image.get_size()
         # Flip the cursor if it's player 2's turn
         if self.game.current_player.number == 2:
             cursor_rect = pygame.Rect(cursor_pos[0] - cursor_width // 2, cursor_pos[1] - cursor_height, cursor_width, cursor_height)
             cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
+            cursor_text = font.render(f"{seeds_to_move}", True, BLUE)  # Black text
             self.screen.blit(cursor_image_flipped, cursor_rect)
             text_pos = (cursor_rect.center[0], cursor_rect.center[1] - 20)  # Adjust the y-coordinate
         else:
             cursor_rect = self.cursor_image.get_rect(center=(cursor_pos[0], cursor_pos[1] + self.cursor_image.get_height() // 2))
             self.screen.blit(self.cursor_image, cursor_rect)
+            cursor_text = font.render(f"{seeds_to_move}", True, RED)  # Black text
             text_pos = cursor_rect.center
         self.screen.blit(cursor_text, text_pos)
 
@@ -258,7 +259,7 @@ class Drawer:
         
         if cursor_pos_1 is not None:
             seeds_to_move_1 = self.game.animator.get_seeds_to_move_1()
-            cursor_text_1 = font.render(f"{seeds_to_move_1}", True, CURSOR_FONT_COLOR)  # Black text
+            cursor_text_1 = font.render(f"{seeds_to_move_1}", True, RED)  # Black text
             cursor_rect_1 = self.cursor_image.get_rect(center=(cursor_pos_1[0], cursor_pos_1[1] + self.cursor_image.get_height() // 2))
             self.screen.blit(self.cursor_image, cursor_rect_1)
             self.screen.blit(cursor_text_1, cursor_rect_1.center)
@@ -268,7 +269,7 @@ class Drawer:
         print("From Draw: Cursor 2: " + str(cursor_pos_2))
         if cursor_pos_2 is not None:
             seeds_to_move_2 = self.game.animator.get_seeds_to_move_2()
-            cursor_text_2 = font.render(f"{seeds_to_move_2}", True, CURSOR_FONT_COLOR)  # Black text
+            cursor_text_2 = font.render(f"{seeds_to_move_2}", True, BLUE)  # Black text
             cursor_rect_2 = pygame.Rect(cursor_pos_2[0] - self.cursor_image.get_width() // 2, cursor_pos_2[1] - self.cursor_image.get_height(), self.cursor_image.get_width(), self.cursor_image.get_height())
             cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
             self.screen.blit(cursor_image_flipped, cursor_rect_2)
