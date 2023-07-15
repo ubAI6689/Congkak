@@ -35,19 +35,47 @@ class Drawer:
         elif self.game.game_state == self.game.CONFIRM_SELECTION:
             self.draw_selecting()
             self.draw_confirmation()
-        elif self.game.game_state == self.game.PLAYING:
-            self.draw_playing()
 
-                
+        # Draw houses here
+        self.draw_houses()
+
+        if self.game.game_state == self.game.BOTH_PLAYING:
+            self.draw_both_playing_cursor()  # Draw two cursors instead of one
+
         self.draw_player_turn()
         self.draw_restart_button()
         self.draw_pause_message()
         self.draw_pause_button()
         self.draw_capture_message()
         self.draw_winning_message()
-        self.draw_houses()
-        self.draw_cursor()
+
+        if self.game.game_state != self.game.BOTH_PLAYING:  # Don't draw the cursor again if we're in the BOTH_PLAYING state
+            self.draw_cursor()
+
         pygame.display.flip()
+
+    # def draw(self):
+    #     self.screen.fill((SCREEN_FILL_COLOR))  # Fill the screen with white
+
+    #     if self.game.game_state in (self.game.PLAYER_1_SELECTING, self.game.PLAYER_2_SELECTING):
+    #         self.draw_selecting()
+    #         self.draw_start_prompt()
+    #         self.draw_hover_highlight()
+    #     elif self.game.game_state == self.game.CONFIRM_SELECTION:
+    #         self.draw_selecting()
+    #         self.draw_confirmation()
+    #     elif self.game.game_state == self.game.BOTH_PLAYING:
+    #         self.draw_playing()
+
+    #     self.draw_player_turn()
+    #     self.draw_restart_button()
+    #     self.draw_pause_message()
+    #     self.draw_pause_button()
+    #     self.draw_capture_message()
+    #     self.draw_winning_message()
+    #     self.draw_houses()
+    #     self.draw_cursor()
+    #     pygame.display.flip()
 
     def draw_selecting(self):
     # Draw a special highlight around the selected starting house
@@ -198,8 +226,14 @@ class Drawer:
 
     def draw_cursor(self):
         font = pygame.font.Font(CURSOR_FONT, CURSOR_FONT_SIZE)
-        cursor_pos = self.game.animator.get_cursor_pos()
-        seeds_to_move = self.game.animator.get_seeds_to_move()
+        if self.game.current_player.number == 1:
+            cursor_pos = self.game.animator.get_cursor_pos_1()
+            seeds_to_move = self.game.animator.get_seeds_to_move_1()
+        else:
+            cursor_pos = self.game.animator.get_cursor_pos_2()
+            seeds_to_move = self.game.animator.get_seeds_to_move_2()
+        if cursor_pos is None:  # Don't try to draw the cursor if its position is None
+            return
         cursor_text = font.render(f"{seeds_to_move}", True, CURSOR_FONT_COLOR)  # Black text
         cursor_width, cursor_height = self.cursor_image.get_size()
         # Flip the cursor if it's player 2's turn
@@ -213,3 +247,30 @@ class Drawer:
             self.screen.blit(self.cursor_image, cursor_rect)
             text_pos = cursor_rect.center
         self.screen.blit(cursor_text, text_pos)
+
+
+    def draw_both_playing_cursor(self):
+        font = pygame.font.Font(CURSOR_FONT, CURSOR_FONT_SIZE)
+
+        # Draw the cursor for Player 1
+        cursor_pos_1 = self.game.animator.get_cursor_pos_1()
+        print("From Draw: Cursor 1: " + str(cursor_pos_1))
+        
+        if cursor_pos_1 is not None:
+            seeds_to_move_1 = self.game.animator.get_seeds_to_move_1()
+            cursor_text_1 = font.render(f"{seeds_to_move_1}", True, CURSOR_FONT_COLOR)  # Black text
+            cursor_rect_1 = self.cursor_image.get_rect(center=(cursor_pos_1[0], cursor_pos_1[1] + self.cursor_image.get_height() // 2))
+            self.screen.blit(self.cursor_image, cursor_rect_1)
+            self.screen.blit(cursor_text_1, cursor_rect_1.center)
+
+        # Draw the cursor for Player 2
+        cursor_pos_2 = self.game.animator.get_cursor_pos_2()
+        print("From Draw: Cursor 2: " + str(cursor_pos_2))
+        if cursor_pos_2 is not None:
+            seeds_to_move_2 = self.game.animator.get_seeds_to_move_2()
+            cursor_text_2 = font.render(f"{seeds_to_move_2}", True, CURSOR_FONT_COLOR)  # Black text
+            cursor_rect_2 = pygame.Rect(cursor_pos_2[0] - self.cursor_image.get_width() // 2, cursor_pos_2[1] - self.cursor_image.get_height(), self.cursor_image.get_width(), self.cursor_image.get_height())
+            cursor_image_flipped = pygame.transform.flip(self.cursor_image, False, True)
+            self.screen.blit(cursor_image_flipped, cursor_rect_2)
+            self.screen.blit(cursor_text_2, (cursor_rect_2.center[0], cursor_rect_2.center[1] - 20))  # Adjust the y-coordinate
+

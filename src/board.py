@@ -36,8 +36,6 @@ class Board:
         
         return player_1_houses_empty and player_2_houses_empty
 
-
-
     def check_winner(self):
         # Compare the number of seeds in each player's store
         if self.houses[PLAYER_2_STORE] < self.houses[PLAYER_1_STORE]:

@@ -49,10 +49,16 @@ class CongkakGame:
         elif self.game_state == self.CONFIRM_SELECTION:
             self.handle_event_confirm_selection(event)
         elif self.game_state == self.BOTH_PLAYING:
-            self.handle_event_playing(event)
+            self.handle_event_both_playing(event)
+        elif self.game_state == self.ONE_PLAYER_ENDED_CAN_CONTINUE:
+            self.handle_event_one_player_ended_can_continue(event)
+        elif self.game_state == self.ONE_PLAYER_ENDED_WAITING:
+            self.handle_event_one_player_ended_waiting(event)
+        elif self.game_state == self.TURN_BASED:
+            self.handle_event_turn_based(event)
 
     def handle_event_player_1_selecting(self, event):
-        pos = self.animator.get_cursor_pos()
+        pos = self.animator.get_cursor_pos_1()
         if pos is None:
             return  # Ignore events if the cursor position is None
         x, y = pos
@@ -66,11 +72,13 @@ class CongkakGame:
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Confirm the selection when the player clicks
                 self.starting_house[0] = house
+                print("Player 1's starting house: ", self.starting_house[0]) 
+                self.animator.set_cursor_pos_1(self.get_pos_of_house(house))  # Set the cursor position to the selected house
                 self.game_state = self.PLAYER_2_SELECTING
                 self.change_player()  # Change to player 2 after confirming player 1's selection
 
     def handle_event_player_2_selecting(self, event):
-        pos = self.animator.get_cursor_pos()
+        pos = self.animator.get_cursor_pos_2()
         if pos is None:
             return  # Ignore events if the cursor position is None
         x, y = pos
@@ -84,6 +92,8 @@ class CongkakGame:
             elif event.type == pygame.MOUSEBUTTONUP:
                 # Confirm the selection when the player clicks
                 self.starting_house[1] = house
+                print("Player 2's starting house: ", self.starting_house[1]) 
+                self.animator.set_cursor_pos_2(self.get_pos_of_house(house))  # Set the cursor position to the selected house
                 self.change_player()  # Change back to player 1
                 self.game_state = self.CONFIRM_SELECTION
 
@@ -91,7 +101,12 @@ class CongkakGame:
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             if self.drawer.yes_button_rect.collidepoint(pos):
-                self.game_state = self.PLAYING
+                self.game_state = self.BOTH_PLAYING
+                # Get the seeds from the starting houses
+                seeds_to_move_1 = self.board.houses[self.starting_house[0]]
+                seeds_to_move_2 = self.board.houses[self.starting_house[1]]
+                # Initiate the move for both players
+                self.animator.start_move(self.starting_house[0], seeds_to_move_1, self.starting_house[1], seeds_to_move_2)
             elif self.drawer.no_button_rect.collidepoint(pos):
                 # reset house to None
                 self.starting_house[0] = None
@@ -158,7 +173,19 @@ class CongkakGame:
                 pos = pygame.mouse.get_pos()
                 if self.game_state in (self.PLAYER_1_SELECTING, self.PLAYER_2_SELECTING):
                     pos = self.get_corrected_cursor_pos(pos)
-            self.animator.set_cursor_pos(pos)
+                    if self.current_player.number == 1:
+                        self.animator.set_cursor_pos_1(pos)
+                    else:
+                        self.animator.set_cursor_pos_2(pos)
+                elif self.game_state == self.CONFIRM_SELECTION:
+                    self.animator.set_cursor_pos_1(pos)
+                    self.animator.set_cursor_pos_2(pos)
+                elif self.game_state == self.BOTH_PLAYING:
+                    if self.current_player.number == 1:
+                        self.animator.set_cursor_pos_1(self.get_pos_of_house(self.starting_house[0]))
+                    else:
+                        self.animator.set_cursor_pos_2(self.get_pos_of_house(self.starting_house[1]))
+
 
     def get_corrected_cursor_pos(self, pos):
         # Get the x limits for the current player's row
