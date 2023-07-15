@@ -41,6 +41,7 @@ class CongkakGame:
         self.pause = False
         self.game_over = False
 
+
     def handle_event(self, event):
         if self.game_state == self.PLAYER_1_SELECTING:
             self.handle_event_player_1_selecting(event)
@@ -48,8 +49,8 @@ class CongkakGame:
             self.handle_event_player_2_selecting(event)
         elif self.game_state == self.CONFIRM_SELECTION:
             self.handle_event_confirm_selection(event)
-        elif self.game_state == self.BOTH_PLAYING:
-            self.handle_event_both_playing(event)
+        # elif self.game_state == self.BOTH_PLAYING:
+        #     self.handle_event_both_playing(event)
         elif self.game_state == self.ONE_PLAYER_ENDED_CAN_CONTINUE:
             self.handle_event_one_player_ended_can_continue(event)
         elif self.game_state == self.ONE_PLAYER_ENDED_WAITING:
