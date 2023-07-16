@@ -2,6 +2,7 @@
 
 import pygame
 import time
+import math
 from board import Board
 from player import Player
 from drawer import Drawer
@@ -90,8 +91,8 @@ class CongkakGame:
                     self.starting_house[0] = house
                     print("Player 1's starting house: ", self.starting_house[0]) 
                     self.animator.set_cursor_pos_1(self.get_pos_of_house(house))  # Set the cursor position to the selected house
+                    self.current_player = self.players[1]  # Change to player 2 after confirming player 1's selection
                     self.game_state = self.PLAYER_2_SELECTING
-                    self.change_player()  # Change to player 2 after confirming player 1's selection
 
     def handle_event_player_2_selecting(self, event):
         pos = self.animator.get_cursor_pos_2()
@@ -115,7 +116,7 @@ class CongkakGame:
                     self.starting_house[1] = house
                     print("Player 2's starting house: ", self.starting_house[1]) 
                     self.animator.set_cursor_pos_2(self.get_pos_of_house(house))  # Set the cursor position to the selected house
-                    self.change_player()  # Change back to player 1
+                    self.current_player = self.players[0]  # Change back to player 1
                     self.game_state = self.CONFIRM_SELECTION
 
     def handle_event_confirm_selection(self, event):
@@ -284,8 +285,9 @@ class CongkakGame:
 
     def get_pos_of_house(self, house):
         # Return the screen position of the given house
-        gap_ratio = 0.3 
+        gap_ratio = 0.3
         gap = SCREEN_WIDTH * gap_ratio // (INIT_HOUSE_ROW - 1)
+        store_gap = math.sqrt(abs(gap**2 - (0.1 * SCREEN_HEIGHT)**2)) # to make sure the distance travelled by cursors are consistent
         total_house_width = HOUSE_SIZE + gap
         total_row_width = total_house_width * INIT_HOUSE_ROW - 1.5 * gap
         start_pos = 0.5 * SCREEN_WIDTH - total_row_width / 2
@@ -293,10 +295,10 @@ class CongkakGame:
         if house in (PLAYER_1_STORE, PLAYER_2_STORE):  # The stores
             if house == PLAYER_1_STORE:
                 first_house_x, _ = self.get_pos_of_house(0)
-                x = first_house_x - STORE_SIZE - gap  # Position the store to the left of the first house
+                x = first_house_x - STORE_SIZE - store_gap  # Position the store to the left of the first house
             else:
                 last_house_x, _ = self.get_pos_of_house(PLAYER_2_STORE - 1)
-                x = last_house_x + STORE_SIZE + gap  # Position the store to the right of the last house
+                x = last_house_x + STORE_SIZE + store_gap  # Position the store to the right of the last house
             y = 0.5 * SCREEN_HEIGHT
         else:  # Non-store houses
             if house < PLAYER_2_STORE:  # Top row
@@ -314,8 +316,21 @@ class CongkakGame:
             return self.players[1]
         else:
             return self.players[0]
+        
+    def add_seed_to_house(self, house_index):
+        self.board.houses[house_index] += 1
+
+    def empty_house(self, house_index):
+        self.board.houses[house_index] = 0
+
+    def add_seed_to_store(self, player_number):
+        if player_number == 1:
+            self.board.houses[PLAYER_1_STORE] += 1
+        else:
+            self.board.houses[PLAYER_2_STORE] += 1
     
     def toggle_pause(self):
+        print(f"Pause: {self.pause}")
         self.pause = not self.pause
 
     def restart(self):
@@ -324,6 +339,7 @@ class CongkakGame:
         self.starting_house[0] = None
         self.starting_house[1] = None
         self.hovered_house = None
+        self.current_player = self.players[0]
         self.game_state = self.PLAYER_1_SELECTING
 
         self.animator.set_animating(False) # Reset the animation state

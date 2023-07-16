@@ -202,7 +202,7 @@ class Drawer:
 
             # Draw the index of each house
             index_font = pygame.font.Font(HOUSE_INDEX_FONT, HOUSE_INDEX_FONT_SIZE)
-            index_text = index_font.render(chr(65 + i), True, HOUSE_INDEX_COLOR)  # Red text
+            index_text = index_font.render(str(i), True, HOUSE_INDEX_COLOR)  # Red text
             self.screen.blit(index_text, (self.game.get_pos_of_house(i)[0], self.game.get_pos_of_house(i)[1] - 30))  # Draw above the house
 
     def draw_cursor(self):
@@ -236,7 +236,7 @@ class Drawer:
 
         # Draw the cursor for Player 1
         cursor_pos_1 = self.game.animator.get_cursor_pos_1()
-        print("From Draw: Cursor 1: " + str(cursor_pos_1))
+        # print("From Draw: Cursor 1: " + str(cursor_pos_1))
         
         if cursor_pos_1 is not None:
             seeds_to_move_1 = self.game.animator.get_seeds_to_move_1()
@@ -247,7 +247,7 @@ class Drawer:
 
         # Draw the cursor for Player 2
         cursor_pos_2 = self.game.animator.get_cursor_pos_2()
-        print("From Draw: Cursor 2: " + str(cursor_pos_2))
+        # print("From Draw: Cursor 2: " + str(cursor_pos_2))
         if cursor_pos_2 is not None:
             seeds_to_move_2 = self.game.animator.get_seeds_to_move_2()
             cursor_text_2 = font.render(f"{seeds_to_move_2}", True, BLUE)  # Black text
