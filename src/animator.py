@@ -121,105 +121,101 @@ class Animator:
 
     def animate_movement(self):
         if self.game.game_state == self.game.BOTH_PLAYING:
-            self.animate_seeds_movement(2)
-            self.animate_seeds_movement(1)
+            self.animate_simultanous_movement()
         elif self.game.current_player.number == 1:
             self.animate_seeds_movement(1)
         else:
             self.animate_seeds_movement(2)
+            
 
+    def animate_simultanous_movement(self):
+        
+        cursor_pos_1 = self.get_cursor_pos_1()
+        target_pos_1 = self.get_target_pos_1()
+        target_house_1 = self.get_target_house_1()
+        seeds_to_move_1 = self.get_seeds_to_move_1()
+        set_cursor_pos_1 = self.set_cursor_pos_1
+        set_seeds_to_move_1 = self.set_seeds_to_move_1
+        set_target_house_1 = self.set_target_house_1
+        set_target_pos_1 = self.set_target_pos_1
+        get_passed_store_1 = self.get_passed_store_1
+        set_passed_store_1 = self.set_passed_store_1
+        
+        cursor_pos_2 = self.get_cursor_pos_2()
+        target_pos_2 = self.get_target_pos_2()
+        target_house_2 = self.get_target_house_2()
+        seeds_to_move_2 = self.get_seeds_to_move_2()
+        set_cursor_pos_2 = self.set_cursor_pos_2
+        set_seeds_to_move_2 = self.set_seeds_to_move_2
+        set_target_house_2 = self.set_target_house_2
+        set_target_pos_2 = self.set_target_pos_2
+        get_passed_store_2 = self.get_passed_store_2
+        set_passed_store_2 = self.set_passed_store_2
+        
+        # Move both cursors together
+        self.set_cursor_pos_1(self.move_towards(cursor_pos_1, target_pos_1, ANIMATION_SPEED))
+        self.set_cursor_pos_2(self.move_towards(cursor_pos_2, target_pos_2, ANIMATION_SPEED))
 
-    def animate_seeds_movement(self, player_number):
-        if player_number == 1:
-            cursor_pos = self.get_cursor_pos_1()
-            target_pos = self.get_target_pos_1()
-            target_house = self.get_target_house_1()
-            seeds_to_move = self.get_seeds_to_move_1()
-            set_cursor_pos = self.set_cursor_pos_1
-            set_seeds_to_move = self.set_seeds_to_move_1
-            set_target_house = self.set_target_house_1
-            set_target_pos = self.set_target_pos_1
-            get_passed_store = self.get_passed_store_1
-            set_passed_store = self.set_passed_store_1
-        elif player_number == 2:
-            cursor_pos = self.get_cursor_pos_2()
-            target_pos = self.get_target_pos_2()
-            target_house = self.get_target_house_2()
-            seeds_to_move = self.get_seeds_to_move_2()
-            set_cursor_pos = self.set_cursor_pos_2
-            set_seeds_to_move = self.set_seeds_to_move_2
-            set_target_house = self.set_target_house_2
-            set_target_pos = self.set_target_pos_2
-            get_passed_store = self.get_passed_store_2
-            set_passed_store = self.set_passed_store_2
-        else:
-            return
-
-        # Move the cursor towards the target position
-        set_cursor_pos(self.move_towards(cursor_pos, target_pos, ANIMATION_SPEED))
-        # if player_number == 1:
-            # print(f"Player {player_number} Cursor Position: {cursor_pos}")
-
-
-        # If the cursor has reached the target position
-        if cursor_pos == target_pos:
-            # if player_number == 1:
-                # print(f"Player {player_number} Cursor Reached Target Position: {target_pos}")
+        # If either cursor has reached its target, handle the end of movement for both
+        if cursor_pos_1 == target_pos_1 or cursor_pos_2 == target_pos_2:
+            
+            time.sleep(SLEEP_TIME)  # Pause for 5 millisecond
 
             # If all seeds have been moved, check if the movement continues or not
-            if seeds_to_move == 0:
+            if seeds_to_move_1 == 0 or seeds_to_move_2 == 0:
                 self.handle_end_of_movement()
-            else:
-                
-                print(f"<P{player_number}> house: {target_house}")
+                # pass
+                # self.handle_end_of_simultaneous_movement()
 
-                time.sleep(SLEEP_TIME)  # Pause for 5 millisecond
-                self.game.add_seed_to_house(target_house)
+            else:
 
                 # Move a seed from the source house to the target house
-                set_seeds_to_move(seeds_to_move - 1)    
-                print(f"<P{player_number}> seeds to move: {seeds_to_move}")
-                # if player_number == 1:
-                #     print(f"Seeds to move Player {player_number}: {seeds_to_move}")
+                set_seeds_to_move_1(seeds_to_move_1 - 1)
+                set_seeds_to_move_2(seeds_to_move_2 - 1)
 
-                if target_house == self.game.current_player.store:
-                    set_passed_store(True)
-                    # if player_number == 1:
-                    #     print(f"Player {player_number} passed store: {get_passed_store()}")
+                # update the board
+                self.game.add_seed_to_house(target_house_1)
+                self.game.add_seed_to_house(target_house_2)
+
+                if target_house_1 == PLAYER_1_STORE:
+                    set_passed_store_1(True)
+                    print(f"P1 passed store: {get_passed_store_1()}")
+
+                if target_house_2 == PLAYER_2_STORE:
+                    set_passed_store_2(True)
+                    print(f"P2 passed store: {get_passed_store_2()}")
 
                 # Calculate the next target house index
-                next_house = (target_house + 1) % MAX_HOUSE_COUNT
+                next_house_1 = (target_house_1 + 1) % MAX_HOUSE_COUNT
+                next_house_2 = (target_house_2 + 1) % MAX_HOUSE_COUNT
+
                 # Skip the opponent's store and check if the movement continues
-                while (player_number == PLAYER_1 and next_house == PLAYER_2_STORE) or (player_number == PLAYER_2 and next_house == PLAYER_1_STORE):
-                    next_house = (next_house + 1) % MAX_HOUSE_COUNT
+                while (next_house_1 == PLAYER_2_STORE):
+                    next_house_1 = (next_house_1 + 1) % MAX_HOUSE_COUNT
+
+                while (next_house_2 == PLAYER_1_STORE):
+                    next_house_2 = (next_house_2 + 1) % MAX_HOUSE_COUNT
 
                 # Update the target house and position
-                set_target_house(next_house)
-                print(f"<P{player_number}> next house: {next_house}")
-                # print seeds in the next house
-                print(f"<P{player_number}> Seeds in next house: {self.game.board.houses[next_house]}")
+                set_target_house_1(next_house_1)
+                set_target_house_2(next_house_2)
 
-                if (player_number == PLAYER_1 and target_house == PLAYER_1_STORE) or (player_number == PLAYER_2 and target_house == PLAYER_2_STORE):
-                    set_passed_store(True)
-                    # if player_number == 1:
-                        # print(f"Player {player_number} passed store is now {get_passed_store()}")
-
-                set_target_pos(self.game.get_pos_of_house(target_house))
-                # if player_number == 1:
-                    # print(f"Player {player_number} Next Target Position: {set_target_pos}")
-
+                set_target_pos_1(self.game.get_pos_of_house(next_house_1))
+                set_target_pos_2(self.game.get_pos_of_house(next_house_2))
 
     def handle_end_of_movement(self):
         for player_number in [PLAYER_1, PLAYER_2]:
             if player_number == 1:
                 seeds_to_move = self.get_seeds_to_move_1()
                 target_house = self.get_target_house_1()
+                passed_store = self.get_passed_store_1()
                 set_seeds_to_move = self.set_seeds_to_move_1
                 set_target_house = self.set_target_house_1
                 set_target_pos = self.set_target_pos_1
             elif player_number == 2:
                 seeds_to_move = self.get_seeds_to_move_2()
                 target_house = self.get_target_house_2()
+                passed_store = self.get_passed_store_2()
                 set_seeds_to_move = self.set_seeds_to_move_2
                 set_target_house = self.set_target_house_2
                 set_target_pos = self.set_target_pos_2
@@ -228,16 +224,17 @@ class Animator:
 
             if seeds_to_move > 0:
                 continue
-
-            if target_house == self.game.current_player.store:
+            
+            if player_number == 1 and target_house == PLAYER_1_STORE:
+                pass # P1 gets another turn
+            elif player_number == 2 and target_house == PLAYER_2_STORE:
                 pass
-                # Player gets another turn
-    
-            elif self.game.board.houses[target_house] > 1:
+
+            if self.game.board.houses[target_house] > 1:
                 # Player continues the movement    
                 print(f"P{player_number} continues the movement.")
                 
-                seeds_to_drop = self.game.board.houses[target_house]
+                seeds_to_drop = self.game.board.houses[target_house] + 1
                 print(f"Seeds to drop P{player_number}: {seeds_to_drop}")
 
                 self.game.board.houses[target_house] = 0

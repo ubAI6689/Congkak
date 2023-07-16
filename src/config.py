@@ -13,7 +13,7 @@ FPS_LIMIT = 60
 
 # Animation
 ANIMATION_SPEED = 10
-SLEEP_TIME = 0.1
+SLEEP_TIME = 0.3
 CAPTURE_PHASES = [1, 2]
 
 # House gap
