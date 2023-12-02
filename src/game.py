@@ -222,9 +222,9 @@ class CongkakGame:
 
         # Determine the y coordinate based on the current player.
         if self.current_player.number == 1:
-            y = 0.6 * SCREEN_HEIGHT  # Replace with the y coordinate of player 1's row.
+            y = BOTTOM_ROW_Y  # Replace with the y coordinate of player 1's row.
         else:
-            y = 0.4 * SCREEN_HEIGHT  # Replace with the y coordinate of player 2's row.
+            y = TOP_ROW_Y  # Replace with the y coordinate of player 2's row.
 
         # Limit the x coordinate within the player's row
         x = max(min(pos[0], x_max), x_min)
@@ -279,15 +279,14 @@ class CongkakGame:
         x, y = pos
         for i in range(MAX_HOUSE_COUNT):
             house_x, house_y = self.get_pos_of_house(i)
-            if abs(x - house_x) <= 45 and abs(y - house_y) <= 45:  # Within 45 pixels of the center of the house
+            if abs(x - house_x) <= HOUSE_CENTER and abs(y - house_y) <= HOUSE_CENTER:  # Within 45 pixels of the center of the house
                 return i
         return None
 
     def get_pos_of_house(self, house):
         # Return the screen position of the given house
-        gap_ratio = 0.3
-        gap = SCREEN_WIDTH * gap_ratio // (INIT_HOUSE_ROW - 1)
-        store_gap = math.sqrt(abs(gap**2 - (0.1 * SCREEN_HEIGHT)**2)) # to make sure the distance travelled by cursors are consistent
+        gap = GAP
+        store_gap = math.sqrt(abs(gap**2 - (gap / 2)**2)) # to make sure the distance travelled by cursors are consistent
         total_house_width = HOUSE_SIZE + gap
         total_row_width = total_house_width * INIT_HOUSE_ROW - 1.5 * gap
         start_pos = 0.5 * SCREEN_WIDTH - total_row_width / 2
@@ -299,14 +298,14 @@ class CongkakGame:
             else:
                 last_house_x, _ = self.get_pos_of_house(PLAYER_2_STORE - 1)
                 x = last_house_x + STORE_SIZE + store_gap  # Position the store to the right of the last house
-            y = 0.5 * SCREEN_HEIGHT
+            y = CENTER_ROW
         else:  # Non-store houses
             if house < PLAYER_2_STORE:  # Top row
                 x = start_pos + total_house_width * house
-                y = 0.4 * SCREEN_HEIGHT
+                y = TOP_ROW_Y
             else:  # Bottom row
                 x = start_pos + total_house_width * (PLAYER_1_STORE - 1 - house)
-                y = 0.6 * SCREEN_HEIGHT
+                y = BOTTOM_ROW_Y
 
         return x, y
     

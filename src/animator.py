@@ -125,8 +125,7 @@ class Animator:
         elif self.game.current_player.number == 1:
             self.animate_seeds_movement(1)
         else:
-            self.animate_seeds_movement(2)
-            
+            self.animate_seeds_movement(2)            
 
     def animate_simultanous_movement(self):
         
@@ -204,6 +203,8 @@ class Animator:
                 set_target_pos_2(self.game.get_pos_of_house(next_house_2))
 
     def handle_end_of_movement(self):
+        new_move_processed = False
+
         for player_number in [PLAYER_1, PLAYER_2]:
             if player_number == 1:
                 seeds_to_move = self.get_seeds_to_move_1()
@@ -222,19 +223,19 @@ class Animator:
             else:
                 return
 
-            if seeds_to_move > 0:
+            if seeds_to_move > 0 or new_move_processed:
                 continue
-            
-            if player_number == 1 and target_house == PLAYER_1_STORE:
-                pass # P1 gets another turn
-            elif player_number == 2 and target_house == PLAYER_2_STORE:
-                pass
 
-            if self.game.board.houses[target_house] > 1:
+            if player_number == 1 and target_house == PLAYER_1_STORE or player_number == 2 and target_house == PLAYER_2_STORE:
+                self.set_animating(False)
+
+            # The rest of your code here...
+            if self.game.board.houses[target_house] > 1 and target_house is not (PLAYER_1_STORE or PLAYER_2_STORE):
                 # Player continues the movement    
                 print(f"P{player_number} continues the movement.")
-                
-                seeds_to_drop = self.game.board.houses[target_house] + 1
+
+
+                seeds_to_drop = self.game.board.houses[target_house]
                 print(f"Seeds to drop P{player_number}: {seeds_to_drop}")
 
                 self.game.board.houses[target_house] = 0
@@ -245,6 +246,18 @@ class Animator:
                     next_house = (next_house + 1) % MAX_HOUSE_COUNT
                 set_target_house(next_house)
                 set_target_pos(self.game.get_pos_of_house(next_house))
+
+                new_move_processed = True
+                break  # Break the loop as soon as a new move is processed
+
+            else:
+                self.set_animating(False)
+                pass
+
+        if new_move_processed:
+            self.handle_end_of_movement()  # Call the function again if a new move has been processed
+
+
 
     # def move_towards(self, pos, target, speed):
     #     # Move the position pos towards the target position at the given speed
