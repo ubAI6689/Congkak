@@ -1,3 +1,9 @@
+## Start Game
+
+```
+python main.py
+```
+
 
 1. Board Setup: The congkak board typically consists of two rows of seven small holes (also known as 'houses') and two larger holes at the ends (known as 'stores' or 'home'). At the start of the game, seven game pieces (usually small seeds, shells, or marbles) are placed in each of the fourteen smaller holes. The larger holes (stores) are left empty.
 
